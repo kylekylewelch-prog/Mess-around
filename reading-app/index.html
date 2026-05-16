@@ -1,0 +1,978 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Unicorn Reading Quest 🦄</title>
+  <style>
+    /* ── Reset & base ── */
+    * { box-sizing: border-box; margin: 0; padding: 0; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+
+    :root {
+      --purple: #7B2FBE; --lpurple: #C77DFF; --pink: #FF6B9D;
+      --gold: #FFD700;   --green: #4CAF50;   --red: #e53935;
+      --bg1: #0d0221;    --bg2: #1f0a4e;
+    }
+
+    html, body {
+      height: 100%; width: 100%;
+      overflow: hidden;
+      font-family: 'Comic Sans MS', 'Chalkboard SE', 'Arial Rounded MT Bold', cursive;
+      background: radial-gradient(ellipse at top, var(--bg2) 0%, var(--bg1) 70%);
+      color: white;
+      user-select: none; -webkit-user-select: none;
+    }
+
+    /* ── Keyframes ── */
+    @keyframes float      { 0%,100%{transform:translateY(0)}  50%{transform:translateY(-18px)} }
+    @keyframes pulse-glow { 0%,100%{box-shadow:0 0 12px rgba(199,125,255,.4)} 50%{box-shadow:0 0 35px rgba(199,125,255,.9),0 0 60px rgba(199,125,255,.3)} }
+    @keyframes shimmer    { 0%{background-position:-200% center} 100%{background-position:200% center} }
+    @keyframes star-pop   { 0%{transform:scale(0) rotate(-30deg);opacity:0} 60%{transform:scale(1.4) rotate(10deg);opacity:1} 100%{transform:scale(1) rotate(0deg);opacity:1} }
+    @keyframes correct-pop{ 0%{transform:scale(1)} 40%{transform:scale(1.18)} 70%{transform:scale(.95)} 100%{transform:scale(1)} }
+    @keyframes wrong-shake{ 0%,100%{transform:translateX(0)} 20%{transform:translateX(-12px)} 40%{transform:translateX(12px)} 60%{transform:translateX(-10px)} 80%{transform:translateX(10px)} }
+    @keyframes fall       { 0%{transform:translateY(-80px) rotate(0deg);opacity:1} 100%{transform:translateY(110vh) rotate(720deg);opacity:0} }
+    @keyframes twinkle    { 0%,100%{opacity:.15;transform:scale(.8)} 50%{opacity:.8;transform:scale(1.2)} }
+    @keyframes bounce     { 0%,100%{transform:scale(1) translateY(0)} 50%{transform:scale(1.08) translateY(-12px)} }
+    @keyframes slide-up   { from{transform:translateY(30px);opacity:0} to{transform:translateY(0);opacity:1} }
+
+    /* ── Screens ── */
+    .screen {
+      position: fixed; inset: 0;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      padding: 20px;
+      opacity: 0; pointer-events: none;
+      transition: opacity .35s ease;
+      z-index: 10;
+    }
+    .screen.active { opacity: 1; pointer-events: all; }
+
+    /* ── Background star layer ── */
+    #starfield { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+    .bg-star { position: absolute; animation: twinkle ease-in-out infinite; color: rgba(255,215,0,.7); }
+
+    /* ── Buttons ── */
+    .btn-magic {
+      background: linear-gradient(135deg, #FF6B9D, #C77DFF, #7B2FBE);
+      background-size: 200% 200%;
+      color: white; border: none; border-radius: 50px;
+      padding: 18px 48px; font-size: 26px; font-family: inherit;
+      cursor: pointer; animation: pulse-glow 2.5s ease-in-out infinite;
+      transition: transform .15s;
+    }
+    .btn-magic:active { transform: scale(.94); }
+
+    .btn-soft {
+      background: rgba(123,47,190,.4); border: 2px solid rgba(199,125,255,.6);
+      color: var(--lpurple); border-radius: 50px;
+      padding: 10px 22px; font-size: 18px; font-family: inherit; cursor: pointer;
+      transition: transform .15s;
+    }
+    .btn-soft:active { transform: scale(.93); }
+
+    /* ── Shimmer text ── */
+    .shimmer-text {
+      background: linear-gradient(90deg, #FFD700, #FF6B9D, #C77DFF, #FFD700);
+      background-size: 200% auto;
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+      animation: shimmer 3s linear infinite;
+    }
+
+    /* ═══════════════ TITLE SCREEN ═══════════════ */
+    #title-screen { gap: 10px; }
+    .title-unicorn { font-size: 110px; animation: float 3.5s ease-in-out infinite; filter: drop-shadow(0 0 24px rgba(255,107,157,.9)); }
+    .title-main    { font-size: clamp(30px, 8vw, 54px); font-weight: bold; }
+    .title-sub     { color: var(--lpurple); font-size: 20px; margin-bottom: 30px; }
+
+    /* ═══════════════ WORLD MAP ═══════════════ */
+    #world-screen { justify-content: flex-start; overflow-y: auto; padding-top: 24px; padding-bottom: 40px; }
+    .map-header { display: flex; justify-content: space-between; align-items: center; width: 100%; max-width: 540px; margin-bottom: 18px; }
+    .map-title  { color: var(--gold); font-size: 26px; text-shadow: 0 0 12px rgba(255,215,0,.7); }
+    .star-pill  { background: rgba(255,215,0,.15); border: 2px solid var(--gold); border-radius: 50px; padding: 6px 18px; color: var(--gold); font-size: 20px; }
+
+    .world-card {
+      background: linear-gradient(135deg, rgba(123,47,190,.55), rgba(13,2,33,.55));
+      border: 2px solid rgba(199,125,255,.45);
+      border-radius: 22px; padding: 14px 18px; margin: 8px 0;
+      width: 100%; max-width: 540px; cursor: pointer;
+      transition: transform .15s, border-color .2s, box-shadow .2s;
+    }
+    .world-card:not(.locked):active { transform: scale(.97); }
+    .world-card.locked { opacity: .45; cursor: not-allowed; }
+    .world-card:not(.locked):hover { border-color: rgba(199,125,255,.85); box-shadow: 0 0 18px rgba(199,125,255,.3); }
+
+    .wc-top    { display: flex; align-items: center; gap: 10px; }
+    .wc-title  { color: var(--gold); font-size: 21px; font-weight: bold; flex: 1; }
+    .wc-badge  { font-size: 32px; }
+    .wc-desc   { color: var(--lpurple); font-size: 15px; margin-top: 4px; }
+    .level-dots { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+    .ldot {
+      width: 32px; height: 32px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; border: 2px solid rgba(255,255,255,.3);
+      background: rgba(255,255,255,.1); cursor: pointer; transition: transform .15s;
+    }
+    .ldot:active { transform: scale(.88); }
+    .ldot.done    { background: linear-gradient(135deg,#FFD700,#FFA500); border-color: #FFD700; }
+    .ldot.current { background: linear-gradient(135deg,#FF6B9D,#C77DFF); border-color: #FF6B9D; animation: pulse-glow 1.8s ease-in-out infinite; }
+    .ldot.locked  { cursor: default; opacity: .5; }
+
+    /* ═══════════════ QUESTION SCREEN ═══════════════ */
+    #question-screen { gap: 0; justify-content: flex-start; padding-top: 16px; }
+
+    .q-topbar { display: flex; justify-content: space-between; align-items: center; width: 100%; max-width: 620px; margin-bottom: 10px; }
+    .q-level-name { color: var(--gold); font-size: 15px; }
+    .progress-row { display: flex; gap: 6px; align-items: center; }
+    .pstar { font-size: 22px; opacity: .25; transition: opacity .3s, transform .3s; }
+    .pstar.earned { opacity: 1; animation: star-pop .5s ease forwards; }
+
+    .mascot { font-size: 64px; animation: float 3s ease-in-out infinite; margin: 6px 0; filter: drop-shadow(0 0 14px rgba(255,107,157,.7)); }
+
+    .q-prompt { color: var(--lpurple); font-size: 19px; margin-bottom: 6px; text-align: center; }
+
+    .big-word {
+      font-size: clamp(42px, 10vw, 68px); font-weight: bold; letter-spacing: 3px;
+      min-height: 80px; display: flex; align-items: center; justify-content: center;
+      text-shadow: 0 0 20px rgba(199,125,255,.7); margin-bottom: 6px;
+    }
+    .big-word .hl { color: var(--gold); text-shadow: 0 0 18px rgba(255,215,0,.8); }
+
+    .speak-btn {
+      background: linear-gradient(135deg, rgba(123,47,190,.7), rgba(45,20,100,.7));
+      border: 2px solid var(--lpurple); border-radius: 50%;
+      width: 56px; height: 56px; font-size: 26px;
+      cursor: pointer; display: block; margin: 0 auto 14px;
+      transition: transform .15s;
+    }
+    .speak-btn:active { transform: scale(.88); }
+
+    /* Answer grid */
+    .answer-grid {
+      display: grid; gap: 14px; width: 100%; max-width: 620px; margin: 0 auto;
+    }
+    .ag-2 { grid-template-columns: 1fr 1fr; }
+    .ag-3 { grid-template-columns: 1fr 1fr 1fr; }
+
+    .ans-btn {
+      background: linear-gradient(135deg, rgba(123,47,190,.65), rgba(30,10,70,.65));
+      border: 3px solid rgba(199,125,255,.55);
+      border-radius: 22px; color: white;
+      font-size: clamp(22px, 5vw, 34px); font-family: inherit;
+      padding: 18px 8px; cursor: pointer; min-height: 90px;
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+      transition: transform .15s, border-color .15s;
+    }
+    .ans-btn:active          { transform: scale(.94); }
+    .ans-btn.state-correct   { background: linear-gradient(135deg, #1b6b35, #4CAF50) !important; border-color: #4CAF50 !important; animation: correct-pop .5s ease; }
+    .ans-btn.state-wrong     { background: linear-gradient(135deg, #7a1010, #e53935) !important; border-color: #e53935 !important; animation: wrong-shake .5s ease; }
+    .ans-btn.state-reveal    { background: linear-gradient(135deg, #1b6b35, #4CAF50) !important; border-color: #4CAF50 !important; }
+
+    /* Digraph label inside button */
+    .digraph-label { font-size: clamp(30px, 7vw, 46px); font-weight: bold; color: var(--gold); }
+    .digraph-sub   { font-size: 14px; color: rgba(255,255,255,.6); }
+
+    /* ═══════════════ AWARD SCREEN ═══════════════ */
+    #award-screen { gap: 10px; }
+    .award-unicorn { font-size: 110px; animation: bounce 1.2s ease-in-out infinite; filter: drop-shadow(0 0 30px rgba(255,107,157,1)); }
+    .award-title   { font-size: clamp(28px, 7vw, 46px); font-weight: bold; }
+    .award-badge   {
+      width: 140px; height: 140px; border-radius: 50%;
+      background: linear-gradient(135deg, #FFD700, #FFA500);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 72px; margin: 0 auto;
+      box-shadow: 0 0 40px rgba(255,215,0,.85);
+      animation: bounce 2s ease-in-out infinite;
+    }
+    .award-stars   { display: flex; justify-content: center; gap: 10px; font-size: 50px; }
+    .award-stars span { animation: star-pop .6s ease forwards; opacity: 0; }
+    .award-msg     { color: var(--lpurple); font-size: 19px; text-align: center; max-width: 420px; }
+    .award-btns    { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; }
+
+    /* ── Particle overlay ── */
+    .particle { position: fixed; pointer-events: none; z-index: 999; animation: fall linear forwards; }
+
+    /* ── Scroll fix ── */
+    #world-screen::-webkit-scrollbar { width: 4px; }
+    #world-screen::-webkit-scrollbar-thumb { background: rgba(199,125,255,.4); border-radius: 4px; }
+  </style>
+</head>
+<body>
+
+<div id="starfield"></div>
+
+<!-- ══════════════ TITLE SCREEN ══════════════ -->
+<div class="screen active" id="title-screen">
+  <div class="title-unicorn">🦄</div>
+  <div class="title-main shimmer-text">Unicorn Reading Quest</div>
+  <div class="title-sub">✨ A Magical Reading Adventure ✨</div>
+  <button class="btn-magic" onclick="showWorldMap()">🌟 Begin Quest! 🌟</button>
+</div>
+
+<!-- ══════════════ WORLD MAP ══════════════ -->
+<div class="screen" id="world-screen">
+  <div style="width:100%;max-width:540px">
+    <div class="map-header">
+      <div class="map-title">🗺️ Choose Your Quest</div>
+      <div class="star-pill">⭐ <span id="total-stars">0</span></div>
+    </div>
+    <div id="world-list"></div>
+  </div>
+</div>
+
+<!-- ══════════════ QUESTION SCREEN ══════════════ -->
+<div class="screen" id="question-screen">
+  <div class="q-topbar">
+    <button class="btn-soft" onclick="showWorldMap()">← Map</button>
+    <div class="q-level-name" id="ql-name"></div>
+    <div class="progress-row" id="progress-row"></div>
+  </div>
+  <div class="mascot" id="mascot">🦄</div>
+  <div class="q-prompt" id="q-prompt">Listen and tap the word!</div>
+  <div class="big-word"  id="q-word"></div>
+  <button class="speak-btn" id="speak-btn" onclick="speakCurrent()">🔊</button>
+  <div class="answer-grid ag-3" id="answer-grid"></div>
+</div>
+
+<!-- ══════════════ AWARD SCREEN ══════════════ -->
+<div class="screen" id="award-screen">
+  <div class="award-unicorn">🦄</div>
+  <div class="award-title shimmer-text" id="aw-title">Amazing!</div>
+  <div class="award-badge" id="aw-badge">🏆</div>
+  <div class="award-stars" id="aw-stars"></div>
+  <div class="award-msg"   id="aw-msg"></div>
+  <div class="award-btns">
+    <button class="btn-magic" id="aw-next" onclick="advanceLevel()">Next Quest →</button>
+    <button class="btn-magic" style="background:linear-gradient(135deg,#4a1a8a,#7B2FBE);animation:none" onclick="showWorldMap()">🗺️ Map</button>
+  </div>
+</div>
+
+<script>
+'use strict';
+
+/* ════════════════════════════════════════════════════════
+   CURRICULUM DATA — Jeffco HMH Into Reading K→1 sequence
+   Player is finishing K: comfortable with CVC words,
+   starting 1st-grade digraphs, then blends, then long vowels.
+   ════════════════════════════════════════════════════════ */
+
+const WORLDS = [
+  /* ─────────────── WORLD 0: Crystal Kingdom (CVC review) ─────────────── */
+  {
+    id: 0,
+    name: "🏰 Crystal Kingdom",
+    icon: "💎",
+    desc: "Short vowel words — warm-up!",
+    locked: false,
+    levels: [
+      {
+        id: "1-1", name: "Short A Words",
+        badge: "🐱", badgeName: "Crystal Cat",
+        focus: "Short /a/ — CVC words",
+        type: "listen-tap",
+        qs: [
+          { word:"cat",  opts:["cat","bat","hat"],  ans:0 },
+          { word:"map",  opts:["nap","map","lap"],  ans:1 },
+          { word:"sat",  opts:["sat","rat","mat"],  ans:0 },
+          { word:"bag",  opts:["tag","nag","bag"],  ans:2 },
+          { word:"ran",  opts:["pan","can","ran"],  ans:2 },
+          { word:"hat",  opts:["hat","bat","fat"],  ans:0 },
+          { word:"tap",  opts:["cap","tap","lap"],  ans:1 },
+          { word:"nap",  opts:["tap","cap","nap"],  ans:2 },
+        ]
+      },
+      {
+        id: "1-2", name: "Short I and O Words",
+        badge: "🐷", badgeName: "Crystal Pig",
+        focus: "Short /i/ and /o/",
+        type: "listen-tap",
+        qs: [
+          { word:"pig",  opts:["big","dig","pig"],  ans:2 },
+          { word:"sit",  opts:["sit","bit","hit"],  ans:0 },
+          { word:"hot",  opts:["dot","lot","hot"],  ans:2 },
+          { word:"mop",  opts:["pop","mop","top"],  ans:1 },
+          { word:"hop",  opts:["hop","pop","cop"],  ans:0 },
+          { word:"fin",  opts:["tin","fin","bin"],  ans:1 },
+          { word:"fox",  opts:["fox","box","sox"],  ans:0 },
+          { word:"him",  opts:["rim","dim","him"],  ans:2 },
+        ]
+      },
+      {
+        id: "1-3", name: "Short U and E Words",
+        badge: "🐛", badgeName: "Crystal Bug",
+        focus: "Short /u/ and /e/",
+        type: "listen-tap",
+        qs: [
+          { word:"sun",  opts:["sun","fun","run"],  ans:0 },
+          { word:"bug",  opts:["mug","bug","rug"],  ans:1 },
+          { word:"cup",  opts:["pup","sup","cup"],  ans:2 },
+          { word:"pet",  opts:["pet","set","net"],  ans:0 },
+          { word:"red",  opts:["bed","red","fed"],  ans:1 },
+          { word:"leg",  opts:["keg","peg","leg"],  ans:2 },
+          { word:"nut",  opts:["nut","but","gut"],  ans:0 },
+          { word:"men",  opts:["den","men","ten"],  ans:1 },
+        ]
+      },
+    ]
+  },
+
+  /* ─────────────── WORLD 1: Shimmer Shore (Digraphs) ─────────────── */
+  {
+    id: 1,
+    name: "🌊 Shimmer Shore",
+    icon: "🐚",
+    desc: "Two-letter sounds: SH, CH, TH, WH",
+    locked: true,
+    levels: [
+      {
+        id: "2-1", name: "SH Words",
+        badge: "🌊", badgeName: "Shore Shell",
+        focus: "Digraph SH — two letters, one sound!",
+        type: "listen-tap-hl",
+        digraph: "sh",
+        qs: [
+          { word:"ship",  opts:["ship","sip","tip"],   ans:0,  hl:[0,1] },
+          { word:"fish",  opts:["fit","fish","fist"],  ans:1,  hl:[2,3] },
+          { word:"shop",  opts:["top","hop","shop"],   ans:2,  hl:[0,1] },
+          { word:"dish",  opts:["dish","dip","dim"],   ans:0,  hl:[2,3] },
+          { word:"shed",  opts:["set","shed","bed"],   ans:1,  hl:[0,1] },
+          { word:"wish",  opts:["win","wit","wish"],   ans:2,  hl:[2,3] },
+          { word:"rush",  opts:["rush","rub","rug"],   ans:0,  hl:[2,3] },
+          { word:"cash",  opts:["cap","cast","cash"],  ans:2,  hl:[2,3] },
+        ]
+      },
+      {
+        id: "2-2", name: "CH Words",
+        badge: "🌺", badgeName: "Shimmer Charm",
+        focus: "Digraph CH — two letters, one sound!",
+        type: "listen-tap-hl",
+        digraph: "ch",
+        qs: [
+          { word:"chin",  opts:["chin","tin","sin"],   ans:0,  hl:[0,1] },
+          { word:"chip",  opts:["dip","chip","tip"],   ans:1,  hl:[0,1] },
+          { word:"much",  opts:["mud","mug","much"],   ans:2,  hl:[2,3] },
+          { word:"chop",  opts:["hop","top","chop"],   ans:2,  hl:[0,1] },
+          { word:"rich",  opts:["rich","rip","rim"],   ans:0,  hl:[2,3] },
+          { word:"chat",  opts:["hat","chat","flat"],  ans:1,  hl:[0,1] },
+          { word:"such",  opts:["suck","such","sun"],  ans:1,  hl:[2,3] },
+          { word:"itch",  opts:["itch","wick","in"],   ans:0,  hl:[2,3] },
+        ]
+      },
+      {
+        id: "2-3", name: "TH Words",
+        badge: "🌙", badgeName: "Moonbeam TH",
+        focus: "Digraph TH — two letters, one sound!",
+        type: "listen-tap-hl",
+        digraph: "th",
+        qs: [
+          { word:"thin",  opts:["thin","tin","bin"],   ans:0,  hl:[0,1] },
+          { word:"that",  opts:["bat","that","fat"],   ans:1,  hl:[0,1] },
+          { word:"this",  opts:["his","is","this"],    ans:2,  hl:[0,1] },
+          { word:"with",  opts:["with","wish","will"], ans:0,  hl:[2,3] },
+          { word:"them",  opts:["hem","them","gem"],   ans:1,  hl:[0,1] },
+          { word:"bath",  opts:["bad","bath","back"],  ans:1,  hl:[2,3] },
+          { word:"math",  opts:["math","mat","man"],   ans:0,  hl:[2,3] },
+          { word:"path",  opts:["pat","pal","path"],   ans:2,  hl:[2,3] },
+        ]
+      },
+      {
+        id: "2-4", name: "WH Words",
+        badge: "🌬️", badgeName: "Wind Whisper",
+        focus: "Digraph WH — two letters, one sound!",
+        type: "listen-tap-hl",
+        digraph: "wh",
+        qs: [
+          { word:"when",  opts:["when","hen","ten"],     ans:0,  hl:[0,1] },
+          { word:"what",  opts:["hat","what","fat"],     ans:1,  hl:[0,1] },
+          { word:"whip",  opts:["hip","rip","whip"],     ans:2,  hl:[0,1] },
+          { word:"wheel", opts:["wheel","heel","feel"],  ans:0,  hl:[0,1] },
+          { word:"white", opts:["kite","white","bite"],  ans:1,  hl:[0,1] },
+          { word:"while", opts:["mile","pile","while"],  ans:2,  hl:[0,1] },
+          { word:"wheat", opts:["wheat","heat","beat"],  ans:0,  hl:[0,1] },
+          { word:"which", opts:["rich","which","itch"],  ans:1,  hl:[0,1] },
+        ]
+      },
+      {
+        id: "2-5", name: "Digraph Mix-Up!",
+        badge: "🌈", badgeName: "Rainbow Magic",
+        focus: "Pick SH, CH, TH, or WH to finish the word",
+        type: "choose-digraph",
+        qs: [
+          { blank:"___ip",  opts:["SH","CH","WH"], words:["ship","chip","whip"],  ans:0 },
+          { blank:"___at",  opts:["WH","TH","CH"], words:["what","that","chat"],  ans:0 },
+          { blank:"fi___",  opts:["SH","CH","TH"], words:["fish","fich","fifth"], ans:0 },
+          { blank:"mu___",  opts:["TH","SH","CH"], words:["muth","mush","much"],  ans:2 },
+          { blank:"___in",  opts:["TH","WH","CH"], words:["thin","whin","chin"],  ans:0 },
+          { blank:"wi___",  opts:["SH","TH","CH"], words:["wish","with","wich"],  ans:1 },
+          { blank:"___en",  opts:["WH","TH","SH"], words:["when","then","shen"],  ans:0 },
+          { blank:"ri___",  opts:["CH","SH","TH"], words:["rich","rish","rith"],  ans:0 },
+          { blank:"___op",  opts:["CH","SH","WH"], words:["chop","shop","whop"],  ans:0 },
+          { blank:"ba___",  opts:["TH","SH","CH"], words:["bath","bash","bach"],  ans:0 },
+        ]
+      },
+    ]
+  },
+
+  /* ─────────────── WORLD 2: Blend Forest (Consonant blends) ─────────────── */
+  {
+    id: 2,
+    name: "🌿 Blend Forest",
+    icon: "🦋",
+    desc: "Two consonants together: st, sl, bl, cr…",
+    locked: true,
+    levels: [
+      {
+        id: "3-1", name: "S-Blend Words",
+        badge: "⭐", badgeName: "Star Blender",
+        focus: "S-blends: st, sl, sm, sn, sp, sw",
+        type: "listen-tap",
+        qs: [
+          { word:"stop",  opts:["top","stop","pop"],  ans:1 },
+          { word:"slip",  opts:["slip","lip","dip"],  ans:0 },
+          { word:"snap",  opts:["nap","snap","tap"],  ans:1 },
+          { word:"spin",  opts:["pin","sin","spin"],  ans:2 },
+          { word:"swim",  opts:["swim","him","dim"],  ans:0 },
+          { word:"sled",  opts:["led","red","sled"],  ans:2 },
+          { word:"step",  opts:["pep","step","rep"],  ans:1 },
+          { word:"snug",  opts:["snug","mug","rug"],  ans:0 },
+        ]
+      },
+      {
+        id: "3-2", name: "L-Blend Words",
+        badge: "🍃", badgeName: "Forest Leaf",
+        focus: "L-blends: cl, fl, gl, pl, bl",
+        type: "listen-tap",
+        qs: [
+          { word:"clap",  opts:["cap","clap","lap"],  ans:1 },
+          { word:"flag",  opts:["flag","lag","bag"],  ans:0 },
+          { word:"flip",  opts:["lip","dip","flip"],  ans:2 },
+          { word:"glad",  opts:["had","glad","bad"],  ans:1 },
+          { word:"plug",  opts:["plug","pug","bug"],  ans:0 },
+          { word:"blue",  opts:["due","blue","true"], ans:1 },
+          { word:"glow",  opts:["low","bow","glow"],  ans:2 },
+          { word:"flat",  opts:["flat","bat","hat"],  ans:0 },
+        ]
+      },
+      {
+        id: "3-3", name: "R-Blend Words",
+        badge: "🐸", badgeName: "Forest Frog",
+        focus: "R-blends: cr, dr, fr, gr, tr, br",
+        type: "listen-tap",
+        qs: [
+          { word:"crab",  opts:["cab","crab","dab"],  ans:1 },
+          { word:"drip",  opts:["drip","dip","rip"],  ans:0 },
+          { word:"frog",  opts:["log","fog","frog"],  ans:2 },
+          { word:"grip",  opts:["rip","grip","tip"],  ans:1 },
+          { word:"trip",  opts:["trip","tip","rip"],  ans:0 },
+          { word:"brim",  opts:["rim","him","brim"],  ans:2 },
+          { word:"drum",  opts:["gum","drum","rum"],  ans:1 },
+          { word:"prop",  opts:["prop","pop","cop"],  ans:0 },
+        ]
+      },
+      {
+        id: "3-4", name: "Final Blend Words",
+        badge: "🌳", badgeName: "Forest Tree",
+        focus: "Final blends: nd, nt, nk, ng, ft, lt, st",
+        type: "listen-tap",
+        qs: [
+          { word:"sand",  opts:["sad","sand","can"],  ans:1 },
+          { word:"tent",  opts:["ten","tent","net"],  ans:1 },
+          { word:"sink",  opts:["sink","sin","tin"],  ans:0 },
+          { word:"ring",  opts:["rig","rind","ring"], ans:2 },
+          { word:"left",  opts:["let","left","lend"], ans:1 },
+          { word:"melt",  opts:["met","men","melt"],  ans:2 },
+          { word:"fast",  opts:["fat","fast","fan"],  ans:1 },
+          { word:"bold",  opts:["bold","bode","bone"],ans:0 },
+        ]
+      },
+    ]
+  },
+
+  /* ─────────────── WORLD 3: Magic Vowel Valley (Long vowels) ─────────────── */
+  {
+    id: 3,
+    name: "🏔️ Magic Vowel Valley",
+    icon: "🌟",
+    desc: "Long vowels: a_e, i_e, o_e, ai, ay, ee, ea",
+    locked: true,
+    levels: [
+      {
+        id: "4-1", name: "Long A — a_e Words",
+        badge: "🎂", badgeName: "Magic Cake",
+        focus: "Long /a/ with silent E: a__e",
+        type: "listen-tap",
+        qs: [
+          { word:"cake",  opts:["cap","cake","cab"],  ans:1 },
+          { word:"lake",  opts:["lad","lap","lake"],  ans:2 },
+          { word:"name",  opts:["name","nap","nab"],  ans:0 },
+          { word:"tape",  opts:["tap","tab","tape"],  ans:2 },
+          { word:"wave",  opts:["wave","wag","van"],  ans:0 },
+          { word:"game",  opts:["gap","game","gas"],  ans:1 },
+          { word:"made",  opts:["mad","mat","made"],  ans:2 },
+          { word:"late",  opts:["late","lad","lap"],  ans:0 },
+        ]
+      },
+      {
+        id: "4-2", name: "Long I — i_e Words",
+        badge: "🪁", badgeName: "Magic Kite",
+        focus: "Long /i/ with silent E: i__e",
+        type: "listen-tap",
+        qs: [
+          { word:"bike",  opts:["bike","bit","big"],  ans:0 },
+          { word:"kite",  opts:["kit","kid","kite"],  ans:2 },
+          { word:"hide",  opts:["hid","hide","hip"],  ans:1 },
+          { word:"fine",  opts:["fine","fin","fit"],  ans:0 },
+          { word:"time",  opts:["tin","time","tip"],  ans:1 },
+          { word:"rice",  opts:["rip","rig","rice"],  ans:2 },
+          { word:"line",  opts:["line","lid","lip"],  ans:0 },
+          { word:"mine",  opts:["min","mill","mine"], ans:2 },
+        ]
+      },
+      {
+        id: "4-3", name: "Long O and U Words",
+        badge: "🏠", badgeName: "Magic Home",
+        focus: "Long /o/ and /u/ with silent E",
+        type: "listen-tap",
+        qs: [
+          { word:"home",  opts:["home","hop","hog"],  ans:0 },
+          { word:"rode",  opts:["rod","rode","rot"],  ans:1 },
+          { word:"cute",  opts:["cut","cup","cute"],  ans:2 },
+          { word:"tube",  opts:["tube","tub","tug"],  ans:0 },
+          { word:"note",  opts:["not","note","nod"],  ans:1 },
+          { word:"mole",  opts:["mob","mop","mole"],  ans:2 },
+          { word:"dune",  opts:["dune","dun","dug"],  ans:0 },
+          { word:"bone",  opts:["bog","bob","bone"],  ans:2 },
+        ]
+      },
+      {
+        id: "4-4", name: "Vowel Teams: AI and AY",
+        badge: "🌧️", badgeName: "Rain Cloud",
+        focus: "Long /a/ teams: ai and ay",
+        type: "listen-tap",
+        qs: [
+          { word:"rain",  opts:["rain","ran","rind"],  ans:0 },
+          { word:"sail",  opts:["sale","sail","salt"],  ans:1 },
+          { word:"day",   opts:["day","bay","say"],     ans:0 },
+          { word:"play",  opts:["clay","play","lay"],   ans:1 },
+          { word:"tail",  opts:["tale","tall","tail"],  ans:2 },
+          { word:"wait",  opts:["wait","bait","maid"],  ans:0 },
+          { word:"stay",  opts:["bay","stay","stab"],   ans:1 },
+          { word:"tray",  opts:["gray","pray","tray"],  ans:2 },
+        ]
+      },
+      {
+        id: "4-5", name: "Vowel Teams: EE and EA",
+        badge: "🌳", badgeName: "Tall Tree",
+        focus: "Long /e/ teams: ee and ea",
+        type: "listen-tap",
+        qs: [
+          { word:"feet",  opts:["feet","felt","fell"],  ans:0 },
+          { word:"tree",  opts:["free","tree","three"], ans:1 },
+          { word:"seat",  opts:["set","seat","salt"],   ans:1 },
+          { word:"read",  opts:["red","read","reed"],   ans:1 },
+          { word:"beam",  opts:["beam","beat","beak"],  ans:0 },
+          { word:"feel",  opts:["feel","fell","felt"],  ans:0 },
+          { word:"neat",  opts:["net","neat","meet"],   ans:1 },
+          { word:"week",  opts:["week","peek","seek"],  ans:0 },
+        ]
+      },
+    ]
+  }
+];
+
+/* ════════════════════════════════════════════════════════
+   AWARD TEXT
+   ════════════════════════════════════════════════════════ */
+const WORLD_AWARDS = [
+  { badge:"👑", title:"Crystal Crown!",  msg:"You mastered short vowel words! A reading star is born!" },
+  { badge:"🐚", title:"Shore Seeker!",   msg:"SH, CH, TH, WH — you know them all! The shore is yours!" },
+  { badge:"🦋", title:"Blend Butterfly!",msg:"You can read blended words! The Blend Forest loves you!" },
+  { badge:"🌟", title:"Vowel Wizard!",   msg:"You mastered long vowels! Magic words obey you!" },
+];
+
+const PRAISE = [
+  "Incredible! ✨","Amazing! 🌟","You're a star! ⭐","Magical! 🦄",
+  "Wonderful! 🎉","Spectacular! 🌈","Brilliant! 💎","Superb! 🏆",
+  "Fantastic! 🌸","Wow! 🎊","Dazzling! 💫","Perfect! 🎀",
+];
+
+/* ════════════════════════════════════════════════════════
+   STATE
+   ════════════════════════════════════════════════════════ */
+let progress       = {};
+let curLevel       = null;   // { ...levelObj, worldIdx, levelIdx }
+let curQIdx        = 0;
+let correctCount   = 0;
+let answered       = false;
+const synth        = window.speechSynthesis;
+let voices         = [];
+
+/* ════════════════════════════════════════════════════════
+   PERSISTENCE
+   ════════════════════════════════════════════════════════ */
+function loadProg() {
+  try { progress = JSON.parse(localStorage.getItem('urq-progress') || '{}'); } catch(e) { progress = {}; }
+  recalcLocks();
+}
+function saveProg() {
+  localStorage.setItem('urq-progress', JSON.stringify(progress));
+  recalcLocks();
+}
+function recalcLocks() {
+  for (let wi = 1; wi < WORLDS.length; wi++) {
+    const prev = WORLDS[wi - 1];
+    WORLDS[wi].locked = !prev.levels.every(l => progress[l.id]?.done);
+  }
+}
+function totalStars() { return Object.values(progress).reduce((s,p) => s + (p.stars||0), 0); }
+
+/* ════════════════════════════════════════════════════════
+   SPEECH
+   ════════════════════════════════════════════════════════ */
+function initSpeech() {
+  voices = synth.getVoices();
+  synth.onvoiceschanged = () => { voices = synth.getVoices(); };
+}
+function speak(text, rate=0.78) {
+  synth.cancel();
+  const u = new SpeechSynthesisUtterance(text);
+  u.rate = rate; u.pitch = 1.1;
+  const v = voices.find(v => v.name.includes('Samantha') || v.name.includes('Karen') || v.lang==='en-US');
+  if (v) u.voice = v;
+  synth.speak(u);
+}
+function speakCurrent() {
+  if (!curLevel) return;
+  const q = curLevel.qs[curQIdx];
+  const word = q.word || (q.words?.[q.ans]);
+  if (word) speak(word, 0.65);
+}
+
+/* ════════════════════════════════════════════════════════
+   SCREEN TRANSITIONS
+   ════════════════════════════════════════════════════════ */
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+/* ════════════════════════════════════════════════════════
+   WORLD MAP
+   ════════════════════════════════════════════════════════ */
+function showWorldMap() {
+  loadProg();
+  document.getElementById('total-stars').textContent = totalStars();
+  buildWorldList();
+  showScreen('world-screen');
+}
+
+function buildWorldList() {
+  const el = document.getElementById('world-list');
+  el.innerHTML = '';
+  WORLDS.forEach((world, wi) => {
+    const div = document.createElement('div');
+    div.className = 'world-card' + (world.locked ? ' locked' : '');
+
+    const dotsHtml = world.levels.map((lv, li) => {
+      const done    = progress[lv.id]?.done;
+      const prevDone = li === 0 || progress[world.levels[li-1]?.id]?.done;
+      const unlocked = !world.locked && prevDone;
+      let cls = 'ldot', txt = li+1;
+      if (done)         { cls += ' done';    txt = '⭐'; }
+      else if (unlocked){ cls += ' current'; }
+      else              { cls += ' locked';  txt = '🔒'; }
+      const onclick = unlocked || done ? `startLevel(${wi},${li})` : '';
+      return `<div class="${cls}" onclick="${onclick}" style="font-size:${done?'18px':'14px'}">${txt}</div>`;
+    }).join('');
+
+    div.innerHTML = `
+      <div class="wc-top">
+        <div class="wc-badge">${world.icon}</div>
+        <div class="wc-title" style="color:${world.locked?'#888':'#FFD700'}">${world.name}</div>
+      </div>
+      <div class="wc-desc">${world.locked ? '🔒 Finish the previous world to unlock' : world.desc}</div>
+      <div class="level-dots">${dotsHtml}</div>
+    `;
+    if (!world.locked) {
+      div.addEventListener('click', e => {
+        if (e.target.classList.contains('ldot')) return;
+        const firstOpen = world.levels.findIndex(l => !progress[l.id]?.done);
+        startLevel(wi, firstOpen === -1 ? 0 : firstOpen);
+      });
+    }
+    el.appendChild(div);
+  });
+}
+
+/* ════════════════════════════════════════════════════════
+   LEVEL START
+   ════════════════════════════════════════════════════════ */
+function startLevel(worldIdx, levelIdx) {
+  loadProg();
+  const world = WORLDS[worldIdx];
+  const level = world.levels[levelIdx];
+  curLevel     = { ...level, worldIdx, levelIdx };
+  curQIdx      = 0;
+  correctCount = 0;
+  answered     = false;
+  showScreen('question-screen');
+  renderQ();
+  setTimeout(speakCurrent, 700);
+}
+
+/* ════════════════════════════════════════════════════════
+   QUESTION RENDERING
+   ════════════════════════════════════════════════════════ */
+function renderQ() {
+  answered = false;
+  const lv = curLevel;
+  const q  = lv.qs[curQIdx];
+  const total = lv.qs.length;
+
+  document.getElementById('ql-name').textContent = lv.name;
+  document.getElementById('mascot').textContent  = '🦄';
+
+  /* progress stars */
+  const row = document.getElementById('progress-row');
+  row.innerHTML = '';
+  for (let i = 0; i < total; i++) {
+    const s = document.createElement('div');
+    s.className = 'pstar' + (i < curQIdx ? ' earned' : '');
+    s.textContent = i < curQIdx ? '⭐' : '☆';
+    row.appendChild(s);
+  }
+
+  if (lv.type === 'listen-tap' || lv.type === 'listen-tap-hl') {
+    renderListenTap(q, lv);
+  } else if (lv.type === 'choose-digraph') {
+    renderChooseDigraph(q);
+  }
+}
+
+/* ─── listen-tap / listen-tap-hl ─── */
+function renderListenTap(q, lv) {
+  document.getElementById('q-prompt').textContent = '🔊 Listen — tap the word you hear!';
+  document.getElementById('speak-btn').style.display = 'block';
+
+  const wordEl = document.getElementById('q-word');
+  wordEl.innerHTML = '';  /* no word shown until after answer */
+
+  const grid = document.getElementById('answer-grid');
+  grid.className = 'answer-grid ag-3';
+  grid.innerHTML = '';
+
+  q.opts.forEach((opt, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'ans-btn';
+    btn.textContent = opt;
+    btn.addEventListener('click', () => handleAnswer(i, q.ans, btn, grid, q, lv));
+    grid.appendChild(btn);
+  });
+}
+
+/* ─── choose-digraph ─── */
+function renderChooseDigraph(q) {
+  document.getElementById('q-prompt').textContent = 'Which letters finish the word?';
+  document.getElementById('speak-btn').style.display = 'none';
+
+  const wordEl = document.getElementById('q-word');
+  wordEl.innerHTML = `<span style="color:rgba(255,255,255,.45)">${q.blank}</span>`;
+
+  const grid = document.getElementById('answer-grid');
+  grid.className = 'answer-grid ag-3';
+  grid.innerHTML = '';
+
+  q.opts.forEach((opt, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'ans-btn';
+    btn.innerHTML = `<span class="digraph-label">${opt}</span><span class="digraph-sub">says /${opt.toLowerCase()}/</span>`;
+    btn.addEventListener('click', () => {
+      speak(q.words[i] || opt, 0.7);
+      handleAnswer(i, q.ans, btn, grid, q, curLevel);
+    });
+    grid.appendChild(btn);
+  });
+}
+
+/* ════════════════════════════════════════════════════════
+   ANSWER LOGIC
+   ════════════════════════════════════════════════════════ */
+function handleAnswer(chosen, correct, btn, grid, q, lv) {
+  if (answered) return;
+  answered = true;
+
+  const btns = [...grid.querySelectorAll('.ans-btn')];
+
+  if (chosen === correct) {
+    btn.classList.add('state-correct');
+    correctCount++;
+    document.getElementById('mascot').textContent = '🦄✨';
+
+    /* for listen-tap-hl: reveal the word with digraph highlighted */
+    if (lv.type === 'listen-tap-hl') {
+      const word = q.word;
+      const hl   = q.hl || [];  /* [startIdx, endIdx] */
+      let html = '';
+      for (let ci = 0; ci < word.length; ci++) {
+        if (ci === hl[0]) html += '<span class="hl">';
+        html += word[ci];
+        if (ci === hl[1]) html += '</span>';
+      }
+      document.getElementById('q-word').innerHTML = html;
+    }
+
+    speak(q.word || q.words?.[correct] || 'Great job', 0.85);
+    launchSparkles(true);
+
+    setTimeout(() => {
+      /* earn star in progress row */
+      const stars = document.getElementById('progress-row').children;
+      if (curQIdx < stars.length) {
+        stars[curQIdx].textContent = '⭐';
+        stars[curQIdx].classList.add('earned');
+      }
+      curQIdx++;
+      if (curQIdx >= lv.qs.length) {
+        setTimeout(showAward, 600);
+      } else {
+        renderQ();
+        setTimeout(speakCurrent, 650);
+      }
+    }, 1400);
+
+  } else {
+    btn.classList.add('state-wrong');
+    document.getElementById('mascot').textContent = '🦄💭';
+    speak('Try again!', 0.9);
+
+    setTimeout(() => {
+      btn.classList.remove('state-wrong');
+      answered = false;
+      /* also speak the word again to give another chance */
+      speakCurrent();
+    }, 900);
+  }
+}
+
+/* ════════════════════════════════════════════════════════
+   AWARD SCREEN
+   ════════════════════════════════════════════════════════ */
+function showAward() {
+  const lv    = curLevel;
+  const total = lv.qs.length;
+  const stars = correctCount >= total ? 3 : correctCount >= Math.floor(total * .7) ? 2 : 1;
+
+  /* save */
+  const prev = progress[lv.id] || {};
+  progress[lv.id] = { done: true, stars: Math.max(stars, prev.stars || 0) };
+  saveProg();
+
+  /* check world complete */
+  const world     = WORLDS[lv.worldIdx];
+  const worldDone = world.levels.every(l => progress[l.id]?.done);
+
+  let title = PRAISE[Math.floor(Math.random() * PRAISE.length)];
+  let badge = lv.badge;
+  let msg   = `You earned the ${lv.badge} ${lv.badgeName} badge! ${correctCount}/${total} correct!`;
+
+  if (worldDone) {
+    const wa = WORLD_AWARDS[lv.worldIdx];
+    title = wa.title; badge = wa.badge; msg = wa.msg;
+    /* check if next world now unlocked */
+    recalcLocks();
+  }
+
+  document.getElementById('aw-title').textContent = title;
+  document.getElementById('aw-badge').textContent  = badge;
+  document.getElementById('aw-msg').textContent    = msg;
+
+  /* animate stars */
+  const starsEl = document.getElementById('aw-stars');
+  starsEl.innerHTML = '';
+  for (let i = 0; i < 3; i++) {
+    const s = document.createElement('span');
+    s.textContent = i < stars ? '⭐' : '☆';
+    s.style.animationDelay = `${i * 0.25}s`;
+    starsEl.appendChild(s);
+  }
+
+  /* next button visibility */
+  const nextBtn  = document.getElementById('aw-next');
+  const nextLvlI = lv.levelIdx + 1;
+  const nextWldI = lv.worldIdx + 1;
+  const hasNext  = nextLvlI < world.levels.length || (nextWldI < WORLDS.length && !WORLDS[nextWldI].locked);
+  nextBtn.style.display = hasNext ? 'block' : 'none';
+
+  launchConfetti();
+  showScreen('award-screen');
+  speak(worldDone ? "You finished the world! Amazing!" : "Amazing! You did it!", 0.9);
+}
+
+function advanceLevel() {
+  const lv    = curLevel;
+  const nextI = lv.levelIdx + 1;
+  if (nextI < WORLDS[lv.worldIdx].levels.length) {
+    startLevel(lv.worldIdx, nextI);
+  } else {
+    loadProg();
+    const nextW = lv.worldIdx + 1;
+    if (nextW < WORLDS.length && !WORLDS[nextW].locked) startLevel(nextW, 0);
+    else showWorldMap();
+  }
+}
+
+/* ════════════════════════════════════════════════════════
+   VISUAL EFFECTS
+   ════════════════════════════════════════════════════════ */
+const SPARKLES = ['✨','⭐','🌟','💫','🌈','🦄','💎','🌸','🎀','💛','💜','💖'];
+
+function particle(emoji, x, y, dur, delay=0) {
+  const el = document.createElement('div');
+  el.className = 'particle';
+  el.textContent = emoji;
+  el.style.cssText = `left:${x}vw;top:${y}vh;font-size:${18+Math.random()*18}px;animation-duration:${dur}s;animation-delay:${delay}s`;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), (dur + delay) * 1000 + 200);
+}
+
+function launchSparkles(positive) {
+  const pool  = positive ? SPARKLES : ['💭','🌙'];
+  const count = positive ? 16 : 4;
+  for (let i = 0; i < count; i++) {
+    setTimeout(() => particle(pool[Math.random()*pool.length|0], 15+Math.random()*70, 15+Math.random()*60, 1.2+Math.random()*1.5), i*70);
+  }
+}
+
+function launchConfetti() {
+  for (let i = 0; i < 50; i++) {
+    setTimeout(() => particle(
+      SPARKLES[Math.random()*SPARKLES.length|0],
+      Math.random()*100, -5,
+      2.5+Math.random()*2.5, Math.random()*0.6
+    ), i * 55);
+  }
+}
+
+function buildStarfield() {
+  const sf = document.getElementById('starfield');
+  const chars = ['✦','✧','⋆','˚','·','*'];
+  for (let i = 0; i < 35; i++) {
+    const s = document.createElement('div');
+    s.className = 'bg-star';
+    s.textContent = chars[Math.random()*chars.length|0];
+    s.style.cssText = `left:${Math.random()*100}vw;top:${Math.random()*100}vh;font-size:${8+Math.random()*14}px;animation-duration:${2.5+Math.random()*3.5}s;animation-delay:${Math.random()*4}s`;
+    sf.appendChild(s);
+  }
+}
+
+/* ════════════════════════════════════════════════════════
+   BOOT
+   ════════════════════════════════════════════════════════ */
+window.addEventListener('load', () => {
+  buildStarfield();
+  initSpeech();
+  loadProg();
+  showScreen('title-screen');
+});
+</script>
+</body>
+</html>
