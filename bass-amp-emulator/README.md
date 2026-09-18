@@ -77,6 +77,20 @@ filters are IIR rather than linear phase, and there is no lookahead anywhere in
 the dynamics section. [docs/LATENCY.md](docs/LATENCY.md) has the full budget and
 the reasoning.
 
+CPU cost is low enough that it is not the constraint. The test suite measures
+throughput on every run; a typical result on a modest machine:
+
+| Preset | Oversampling | Cost at a 128-sample buffer |
+|---|---|---|
+| Flat Reference | 2x | ~1.8% of one core |
+| Fridge Standard | 2x | ~2.4% |
+| Split Rig Metal (gate + comp + distortion) | 2x | ~2.8% |
+| Split Rig Metal | 4x | ~4.0% |
+| Dub Delay (comp + delay + reverb) | 2x | ~3.1% |
+
+Which means the buffer size you can hold is set by your interface and your
+drivers, not by this app.
+
 ---
 
 ## Getting it running

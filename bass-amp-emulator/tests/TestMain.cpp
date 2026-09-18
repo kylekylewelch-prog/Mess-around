@@ -11,6 +11,7 @@ void testPedals();
 void testRig();
 void testPresets();
 void testStateRoundTrip();
+void testPerformance();
 
 int main()
 {
@@ -26,5 +27,6 @@ int main()
     testRig();
     testPresets();
     testStateRoundTrip();
+    testPerformance();
     return tst::report();
 }
