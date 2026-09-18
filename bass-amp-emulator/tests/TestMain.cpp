@@ -8,6 +8,9 @@ void testTuner();
 void testMetronome();
 void testAmpAndCab();
 void testPedals();
+void testRig();
+void testPresets();
+void testStateRoundTrip();
 
 int main()
 {
@@ -20,5 +23,8 @@ int main()
     testMetronome();
     testAmpAndCab();
     testPedals();
+    testRig();
+    testPresets();
+    testStateRoundTrip();
     return tst::report();
 }

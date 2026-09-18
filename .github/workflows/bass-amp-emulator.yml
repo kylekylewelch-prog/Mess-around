@@ -1,0 +1,76 @@
+name: BassAmp Studio
+
+on:
+  push:
+    paths:
+      - 'bass-amp-emulator/**'
+      - '.github/workflows/bass-amp-emulator.yml'
+  pull_request:
+    paths:
+      - 'bass-amp-emulator/**'
+      - '.github/workflows/bass-amp-emulator.yml'
+  workflow_dispatch:
+
+defaults:
+  run:
+    working-directory: bass-amp-emulator
+
+jobs:
+  dsp-tests:
+    name: DSP tests (Linux)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # The DSP core has no framework dependency, so the numerical tests run
+      # without installing an audio stack at all.
+      - name: Configure
+        run: cmake -B build -DBASSAMP_BUILD_PLUGIN=OFF -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build
+        run: cmake --build build --parallel
+
+      - name: Test
+        run: ctest --test-dir build --output-on-failure
+
+  windows:
+    name: Windows build (standalone + VST3)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Cache JUCE
+        uses: actions/cache@v4
+        with:
+          path: bass-amp-emulator/build/_deps
+          key: juce-${{ runner.os }}-8.0.15
+
+      # No ASIO SDK here: Steinberg's licence does not allow redistributing it,
+      # so CI builds the WASAPI/DirectSound configuration. Local builds add ASIO
+      # with -DBASSAMP_ASIO_SDK_PATH, see docs/BUILDING_WINDOWS.md.
+      - name: Configure
+        run: cmake -B build -G "Visual Studio 17 2022" -A x64
+
+      - name: Build
+        run: cmake --build build --config Release --parallel
+
+      - name: Test
+        run: ctest --test-dir build -C Release --output-on-failure
+
+      - name: Stage artifacts
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path dist | Out-Null
+          Copy-Item -Recurse -Force `
+            "build/BassAmpStudio_artefacts/Release/Standalone/BassAmp Studio.exe" dist/
+          Copy-Item -Recurse -Force `
+            "build/BassAmpStudio_artefacts/Release/VST3/BassAmp Studio.vst3" dist/
+          Copy-Item -Force README.md dist/
+          Copy-Item -Recurse -Force docs dist/docs
+
+      - name: Upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: BassAmpStudio-windows-x64
+          path: bass-amp-emulator/dist/
+          if-no-files-found: error
