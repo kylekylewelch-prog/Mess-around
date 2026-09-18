@@ -19,6 +19,7 @@ private:
     void timerCallback() override;
     void rebuildPresetList();
     void loadSelectedPreset();
+    void showNotesForSelection();
     void savePresetFile();
     void loadPresetFile();
 

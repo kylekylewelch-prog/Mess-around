@@ -84,7 +84,7 @@ void BassAmpProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::Mid
         if (wah->isEnabled() && wah->getParamValue (4) < 0.5f)   // pedal mode
             wah->setParamValue (0, expression.load() * 100.0f);
 
-    rig.metronome().setTempo (rig.metronome().getTempo());
+    // Tempo-synced pedals follow the metronome's clock.
     rig.pedalboard().setTempo (rig.metronome().getTempo());
 
     if (monoInput.getNumSamples() < numSamples) monoInput.setSize (1, numSamples, false, false, true);

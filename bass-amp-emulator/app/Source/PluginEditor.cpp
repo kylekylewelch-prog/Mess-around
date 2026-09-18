@@ -97,8 +97,26 @@ void BassAmpEditor::rebuildPresetList()
         presetSelect.addItem (preset.name, i + 1);
     }
 
-    if (presetSelect.getNumItems() > 0) presetSelect.setSelectedItemIndex (0, juce::dontSendNotification);
-    loadSelectedPreset();
+    // Deliberately does not load anything: re-filtering the list, or simply
+    // opening the editor, must never overwrite the rig the player is using.
+    const int program = processor.getCurrentProgram();
+    if (presetSelect.indexOfItemId (program + 1) >= 0)
+        presetSelect.setSelectedId (program + 1, juce::dontSendNotification);
+    else if (presetSelect.getNumItems() > 0)
+        presetSelect.setSelectedItemIndex (0, juce::dontSendNotification);
+
+    showNotesForSelection();
+}
+
+void BassAmpEditor::showNotesForSelection()
+{
+    const int index = presetSelect.getSelectedId() - 1;
+    if (index < 0 || index >= numPresets()) return;
+
+    const auto& preset = getPreset (index);
+    presetNotes.setText (juce::String (preset.reference) + "   |   " + juce::String (preset.notes),
+                         juce::dontSendNotification);
+    presetNotes.setTooltip (juce::String (preset.reference) + "\n\n" + juce::String (preset.notes));
 }
 
 void BassAmpEditor::loadSelectedPreset()
@@ -107,11 +125,7 @@ void BassAmpEditor::loadSelectedPreset()
     if (index < 0 || index >= numPresets()) return;
 
     processor.loadPreset (index);
-
-    const auto& preset = getPreset (index);
-    presetNotes.setText (juce::String (preset.reference) + "   |   " + juce::String (preset.notes),
-                         juce::dontSendNotification);
-    presetNotes.setTooltip (juce::String (preset.reference) + "\n\n" + juce::String (preset.notes));
+    showNotesForSelection();
 }
 
 void BassAmpEditor::savePresetFile()
@@ -215,9 +229,15 @@ void BassAmpEditor::timerCallback()
 {
     // Nothing time critical here - the panels run their own timers. This just
     // keeps the preset notes line honest if the host changed program.
+    // Keep the box in step if the host changed program behind our back, but
+    // never select an item the current genre filter has hidden.
     const int program = processor.getCurrentProgram();
-    if (program >= 0 && program < numPresets() && presetSelect.getSelectedId() - 1 != program)
+    if (program >= 0 && presetSelect.getSelectedId() - 1 != program
+        && presetSelect.indexOfItemId (program + 1) >= 0)
+    {
         presetSelect.setSelectedId (program + 1, juce::dontSendNotification);
+        showNotesForSelection();
+    }
 }
 
 void BassAmpEditor::paint (juce::Graphics& g)

@@ -1,7 +1,9 @@
 #include "UtilityPanels.h"
 
 #if JucePlugin_Build_Standalone
- #include <juce_audio_plugin_client/juce_audio_plugin_client.h>
+ // The module's umbrella header only carries config macros; the standalone
+ // holder that owns the audio device manager lives in this one.
+ #include <juce_audio_plugin_client/Standalone/juce_StandaloneFilterWindow.h>
 #endif
 
 using namespace bassamp;

@@ -86,7 +86,7 @@ Full instructions, including ASIO setup, are in
 
 ```powershell
 cd bass-amp-emulator
-cmake -B build -G "Visual Studio 17 2022" -A x64 -DBASSAMP_ASIO_SDK_PATH="C:/SDKs/asiosdk"
+cmake -B build -DBASSAMP_ASIO_SDK_PATH="C:/SDKs/asiosdk"
 cmake --build build --config Release --parallel
 ```
 

@@ -48,8 +48,11 @@ jobs:
       # No ASIO SDK here: Steinberg's licence does not allow redistributing it,
       # so CI builds the WASAPI/DirectSound configuration. Local builds add ASIO
       # with -DBASSAMP_ASIO_SDK_PATH, see docs/BUILDING_WINDOWS.md.
+      # No explicit generator: the windows-latest image moves to a new Visual
+      # Studio version periodically, and pinning "Visual Studio 17 2022" breaks
+      # the day it does. CMake picks whichever VS the runner has installed.
       - name: Configure
-        run: cmake -B build -G "Visual Studio 17 2022" -A x64
+        run: cmake -B build
 
       - name: Build
         run: cmake --build build --config Release --parallel

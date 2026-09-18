@@ -84,12 +84,12 @@ void AmpPanel::refreshForAmp()
 
     if (ampHasMidFreq (type))
     {
-        const int selected = midFreq.getSelectedItemIndex();
-        midFreq.clear (juce::dontSendNotification);
-        for (int i = 0; i < ampMidFreqCount (type); ++i)
-            midFreq.addItem (juce::String ((int) ampMidFreqValue (type, i)) + " Hz", i + 1);
-        midFreq.setSelectedItemIndex (juce::jlimit (0, ampMidFreqCount (type) - 1, selected),
-                                      juce::dontSendNotification);
+        // Retitle rather than repopulate: clearing a combo box out from under a
+        // live parameter attachment loses the selection.
+        for (int i = 0; i < 5; ++i)
+            midFreq.changeItemText (i + 1, juce::String ((int) ampMidFreqValue (type, i)) + " Hz");
+        midFreq.setText (midFreq.getItemText (juce::jmax (0, midFreq.getSelectedItemIndex())),
+                         juce::dontSendNotification);
     }
 
     resized();
@@ -412,10 +412,12 @@ void PedalboardPanel::selectPedal (int pedalTypeIndex)
 
 void PedalboardPanel::buildControlsFor (int pedalTypeIndex)
 {
-    knobs.clear();
+    // Order matters: an attachment holds a reference to its combo box, so the
+    // attachments have to go first.
+    choiceAttachments.clear();
     choiceBoxes.clear();
     choiceLabels.clear();
-    choiceAttachments.clear();
+    knobs.clear();
 
     auto probe = createPedal ((PedalType) pedalTypeIndex);
     if (probe == nullptr) return;

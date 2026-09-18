@@ -15,9 +15,13 @@ install it yourself. Budget a few minutes and about 1 GB for that first build.
 
 ```powershell
 cd bass-amp-emulator
-cmake -B build -G "Visual Studio 17 2022" -A x64
+cmake -B build
 cmake --build build --config Release --parallel
 ```
+
+CMake picks whichever Visual Studio you have installed. If you have more than one
+and want to choose, add the generator explicitly, e.g.
+`-G "Visual Studio 17 2022" -A x64`.
 
 Output lands in:
 
@@ -48,7 +52,7 @@ repository, but adding it takes two minutes:
 3. Configure with the path:
 
 ```powershell
-cmake -B build -G "Visual Studio 17 2022" -A x64 -DBASSAMP_ASIO_SDK_PATH="C:/SDKs/asiosdk"
+cmake -B build -DBASSAMP_ASIO_SDK_PATH="C:/SDKs/asiosdk"
 cmake --build build --config Release --parallel
 ```
 
