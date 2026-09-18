@@ -89,7 +89,8 @@ void testTuner()
         std::vector<float> silence (48000, 0.0f);
         for (size_t pos = 0; pos < silence.size(); pos += 256)
         {
-            tuner.processAudio (silence.data() + pos, 256);
+            const int n = (int) std::min ((size_t) 256, silence.size() - pos);
+            tuner.processAudio (silence.data() + pos, n);
             tuner.runDetection();
         }
         tst::check (! tuner.hasSignal(), "tuner reports no signal on silence");
