@@ -68,9 +68,9 @@ jobs:
           path: bass-amp-emulator/build/_deps
           key: juce-${{ runner.os }}-8.0.15
 
-      # No ASIO SDK here: Steinberg's licence does not allow redistributing it,
-      # so CI builds the WASAPI/DirectSound configuration. Local builds add ASIO
-      # with -DBASSAMP_ASIO_SDK_PATH, see docs/BUILDING_WINDOWS.md.
+      # The ASIO SDK 2.3.4 is bundled under third_party/asiosdk under its GPLv3
+      # licence (dual-licensed since SDK 2.3.4). CMakeLists.txt auto-detects it,
+      # so no explicit path flag is needed here.
       # No explicit generator: the windows-latest image moves to a new Visual
       # Studio version periodically, and pinning "Visual Studio 17 2022" breaks
       # the day it does. CMake picks whichever VS the runner has installed.

@@ -8,11 +8,17 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 option(BASSAMP_BUILD_TESTS  "Build the DSP test suite"     ON)
 option(BASSAMP_BUILD_PLUGIN "Build the app and VST3 plugin" ON)
 
-# Steinberg's ASIO SDK cannot be redistributed, so it is not vendored here.
-# Download it from Steinberg, unzip it, and point this at the folder that
-# contains `common/` and `host/` - then the standalone app gets ASIO support.
-#   cmake -B build -DBASSAMP_ASIO_SDK_PATH="C:/SDKs/asiosdk"
-set(BASSAMP_ASIO_SDK_PATH "" CACHE PATH "Path to the Steinberg ASIO SDK (optional, Windows only)")
+# ASIO SDK: bundled under third_party/asiosdk (GPLv3-licensed copy as of SDK 2.3.4).
+# A path override is still supported for custom installs.
+set(_BUNDLED_ASIO "${CMAKE_CURRENT_SOURCE_DIR}/third_party/asiosdk")
+if(EXISTS "${_BUNDLED_ASIO}/common/asio.h")
+    set(_DEFAULT_ASIO_PATH "${_BUNDLED_ASIO}")
+else()
+    set(_DEFAULT_ASIO_PATH "")
+endif()
+set(BASSAMP_ASIO_SDK_PATH "${_DEFAULT_ASIO_PATH}" CACHE PATH
+    "Path to the Steinberg ASIO SDK root (the folder containing common/ and host/). \
+Defaults to the bundled copy in third_party/asiosdk.")
 
 set(BASSAMP_JUCE_TAG "8.0.15" CACHE STRING "JUCE release tag to build against")
 
