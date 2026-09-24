@@ -1,0 +1,30 @@
+# Build output. JUCE is fetched into build/_deps, so this covers it too.
+build/
+build-*/
+dist/
+cmake-build-*/
+
+# CMake artifacts left outside a build directory
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+CTestTestfile.cmake
+Testing/
+
+# Compiled objects and binaries
+*.o
+*.obj
+*.a
+*.lib
+*.so
+*.dylib
+*.dll
+*.exe
+*.pdb
+
+# Editors and OS
+.vs/
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
