@@ -1,0 +1,130 @@
+name: Release
+
+# Actions artifacts expire, so tagged builds are published as GitHub Releases
+# instead: those keep a permanent download URL. Push a v* tag to cut one.
+on:
+  push:
+    tags:
+      - 'v*'
+  # Re-run a release build without moving the tag (e.g. after a runner failure).
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Existing tag to build and publish'
+        required: true
+
+permissions:
+  contents: write
+
+defaults:
+  run:
+    working-directory: bass-amp-emulator
+
+jobs:
+  windows:
+    name: Windows release build
+    runs-on: windows-latest
+    env:
+      TAG: ${{ inputs.tag || github.ref_name }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.tag || github.ref }}
+
+      - name: Cache JUCE
+        uses: actions/cache@v4
+        with:
+          path: bass-amp-emulator/build/_deps
+          key: juce-${{ runner.os }}-8.0.15
+
+      # The bundled ASIO SDK under third_party/asiosdk is auto-detected by
+      # CMakeLists.txt, so the released binary has ASIO support built in.
+      - name: Configure
+        run: cmake -B build
+
+      - name: Build
+        run: cmake --build build --config Release --parallel
+
+      # A release nobody can trust is worse than no release, so the same suite
+      # that gates CI gates the download.
+      - name: Test
+        run: ctest --test-dir build -C Release --output-on-failure
+
+      - name: Stage payload
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path dist | Out-Null
+          Copy-Item -Recurse -Force `
+            "build/BassAmpStudio_artefacts/Release/Standalone/BassAmp Studio.exe" dist/
+          Copy-Item -Recurse -Force `
+            "build/BassAmpStudio_artefacts/Release/VST3/BassAmp Studio.vst3" dist/
+          Copy-Item -Force README.md dist/
+          Copy-Item -Recurse -Force docs dist/docs
+
+      - name: Package
+        shell: pwsh
+        run: |
+          # Braced on purpose: "$env:TAG-windows" would fold the hyphen into the
+          # variable name.
+          $zip = "BassAmpStudio-${env:TAG}-windows-x64.zip"
+          Compress-Archive -Path dist/* -DestinationPath $zip -Force
+          if (-not (Test-Path $zip)) { throw "packaging produced no archive" }
+          "ZIP=$zip" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+
+      # Written as a literal here-string so backticks and backslashes in the
+      # markdown survive; the two placeholders are substituted afterwards.
+      - name: Write release notes
+        shell: pwsh
+        run: |
+          $notes = @'
+          Standalone Windows app and VST3, built from __TAG__.
+
+          ## Install
+
+          1. Install **Focusrite Control** (or your interface's own driver) so its
+             ASIO driver is registered with Windows.
+          2. Download and extract **__ZIP__** below.
+          3. Connect the interface, then run **BassAmp Studio.exe**.
+          4. In the audio settings, pick the **ASIO** device and set the buffer to
+             64 or 128 samples.
+
+          For the plugin, copy `BassAmp Studio.vst3` into
+          `C:\Program Files\Common Files\VST3\`.
+
+          ## Notes
+
+          - ASIO support is compiled in: the Steinberg ASIO SDK 2.3.4 is bundled
+            under its GPLv3 licence, so no separate SDK download is needed.
+          - The rig adds zero samples of latency; round-trip time is the interface
+            and its buffer setting, nothing else.
+          - The DSP suite and a Windows test run gate this build.
+          '@
+          $notes = $notes.Replace('__TAG__', $env:TAG).Replace('__ZIP__', $env:ZIP)
+          $notes | Out-File -FilePath notes.md -Encoding utf8
+
+      - name: Publish
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # GitHub's pwsh runs with ErrorActionPreference=Stop, and on PowerShell
+          # 7.4+ a non-zero native exit throws. The existence probe below is
+          # *expected* to fail on a new tag, so opt out for this step.
+          $ErrorActionPreference = 'Continue'
+          $PSNativeCommandUseErrorActionPreference = $false
+
+          gh release view $env:TAG *> $null
+          $exists = ($LASTEXITCODE -eq 0)
+
+          if ($exists) {
+            gh release upload $env:TAG $env:ZIP --clobber
+          } else {
+            gh release create $env:TAG $env:ZIP `
+              --title "BassAmp Studio $env:TAG" `
+              --notes-file notes.md
+          }
+
+          if ($LASTEXITCODE -ne 0) {
+            Write-Error "publishing the release failed (gh exit $LASTEXITCODE)"
+            exit 1
+          }
