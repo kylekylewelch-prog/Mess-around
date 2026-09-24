@@ -59,9 +59,10 @@ is mixed in after the rig, so your fuzz never touches the drums. A **Cut recorde
 bass** control removes centre-panned low frequencies so the original bass part
 gets out of your way.
 
-**36 presets** across soul, rock, metal, punk, funk, reggae, jazz, prog, pop,
-synth, country, blues, gospel, hip-hop and studio work, each documented with the
-rig it is based on and how to play it. See
+**57 presets** across soul, rock, classic rock, metal, punk, funk, latin, emo,
+reggae, jazz, prog, pop, synth, country, blues, gospel, hip-hop and studio work,
+plus a **Signature** bank built from specific players' documented rigs. Each one
+is documented with the gear it is based on and how to play it. See
 [docs/RIG_RESEARCH.md](docs/RIG_RESEARCH.md).
 
 ---
@@ -138,7 +139,7 @@ The suite currently runs 349 assertions. Among other things it verifies that the
 partitioned convolver matches a direct convolution under irregular block sizes,
 that the tuner reads six reference pitches from a low B upwards to within 3
 cents, that the metronome does not drift by a single sample over four seconds at
-any buffer size, and that all 36 presets and every pedal stay stable at their
+any buffer size, and that all 57 presets and every pedal stay stable at their
 parameter extremes.
 
 ---

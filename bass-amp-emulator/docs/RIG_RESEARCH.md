@@ -181,6 +181,208 @@ character on transients, not tone shaping.
 
 ---
 
+## Signature rigs
+
+These are built from a specific player's documented setup rather than a genre
+convention. Where a player changed rigs substantially between eras, there is a
+preset per era, because the tones genuinely are not interchangeable.
+
+### Geddy Lee
+
+Three distinct eras, two of which are modelled.
+
+**1976-1984: Rickenbacker 4001 into Ampeg SVT.** The 4001 has stereo outputs, and
+he ran the bridge pickup into a dirtier amp than the neck. What people mean by
+"the Geddy tone" on *Moving Pictures* is almost entirely upper midrange: roughly
+800 Hz to 2 kHz, with the SVT pushed far enough to thicken on attack. The low end
+is present but not the point. *Tom Sawyer* and *YYZ* are the reference - on both,
+the bass occupies the band a guitar normally would, which is how it stays audible
+in a three-piece. *Limelight* adds audible chorus.
+
+→ **Clank & Growl**. Ultra Hi engaged, midrange selector at 1.6 kHz, bass control
+deliberately below halfway.
+
+**1986-1992: Wal Mk II into a rack preamp.** Active electronics, much tighter and
+more scooped, and the attack rather than the distortion carrying the aggression.
+*Power Windows* and *Hold Your Fire*. This is a hi-fi sound and a fair bit of
+80s chorus is part of it.
+
+→ **Eighties Hi-Fi**.
+
+**1993 onwards: Fender Jazz, and later three Orange AD200B heads into 8x10s.**
+Covered adequately by **Driver DI Grit** and **Fridge Standard**; his later live
+sound was largely a DI preamp with speaker simulation, with the cabs on stage for
+monitoring.
+
+### Billy Sheehan
+
+The defining feature is not a pedal, it is the instrument wiring. His modified
+Precision and the Yamaha Attitude signatures that followed have **two separate
+outputs**: a neck humbucker feeding a clean bass rig, and a bridge pickup feeding
+a distorted guitar-style amp. The low end never goes through the distortion at
+all.
+
+The Low Keep control on this plugin's dirt pedals does the same job as his
+crossover, which is why the split is modelled with a single distortion pedal
+rather than two chains. *Shy Boy* (Talas, then *Eat 'Em and Smile*, 1986) and
+*Addicted to That Rush* (Mr. Big, 1989) are the reference for the heavy version;
+the three-finger right hand and the wide bends need the upper mids intact or fast
+passages stop being legible.
+
+→ **Attitude Split** (rhythm), **Three-Finger Lead** (lead and tapping).
+
+### John Paul Jones
+
+**Led Zeppelin I-IV: Fender Jazz into an Acoustic 360/361.** The 360 is a
+solid-state preamp driving an 18-inch folded-horn cabinet, with a built-in fuzz
+and a variamp tone section. The folded horn is why the low end on *Led Zeppelin
+II* is so deep, and the cabinet's midrange honk around 350 Hz is why the bass is
+so easy to follow despite that depth. *The Lemon Song* is the clearest example -
+the bass is effectively a second lead instrument - and *Ramble On* is the same
+voice used melodically. The plugin has no 1x18, so the 1x15 model with the
+midrange selector at 350 Hz is the closest approximation.
+
+→ **Folded Horn**.
+
+**Presence and after: Alembic Series I.** Through-neck, active, with low-pass
+filter electronics - a much more modern and hi-fi instrument, extended at both
+ends. *Achilles Last Stand* is the reason to model it separately: sustained
+sixteenth-note playing at that tempo needs clarity the 360 rig does not have.
+
+→ **Alembic Hi-Fi**.
+
+### Geezer Butler
+
+**Black Sabbath, 1970.** Precision into Laney heads and guitar 4x12 cabinets -
+the same amplification Iommi used, which is most of why early Sabbath bass sounds
+more like a guitar than a bass rig. Accounts of the exact fuzz differ; a Fuzz Face
+derivative is the most commonly cited, and the audible result is a gated,
+midrange-heavy saturation rather than a modern scooped fuzz.
+
+*N.I.B.* opens with **"Bassically"**, an unaccompanied bass intro built on fuzz
+into a wah. It is worth separating from the body of the song: the intro is a solo
+tone and the riff tone is not. Both are in E; the band did not drop to C# until
+*Master of Reality*.
+
+→ **Bassically** (fuzz plus wah, intro), **Birmingham Riff** (the song body).
+
+The Bassman model is used for both because Laney's early circuits descend from the
+same 5F6-A lineage as Marshall's.
+
+### James Jamerson
+
+Already covered under Motown, but two further points justify separate presets.
+
+The recordings are **console tracks first and amp tracks second**. Hitsville's
+chain put the bass through a custom DI and valve limiting, and on most of the
+famous sides the DI dominates. The limiting is heavier than sounds correct in
+isolation - *What's Going On*, *For Once in My Life* and *Bernadette* all have a
+bass part with almost no dynamic range and very little content above 1 kHz.
+
+→ **Snakepit Direct**.
+
+The second point is practical: that tone does not survive a stage. His busiest
+lines need 400 to 800 Hz opened back up to stay legible in a live band, without
+adding the top end that would break the illusion.
+
+→ **Hook Melodic**.
+
+### Tim Commerford
+
+**Music Man StingRay into an Ampeg SVT, with a separate driven amp blended in.**
+The StingRay's active two-band EQ and bridge-position humbucker give a pronounced
+low-mid punch and an aggressive top; the dirt is parallel, not in series, which is
+why the fundamental survives on *Bombtrack* and the *Killing in the Name*
+breakdown while the grind still reads as distortion.
+
+*Take the Power Back* is the other half of the same instrument: clean, scooped,
+and carried by sixteenth-note ghost notes. That needs fast compression and the
+Ultra Lo scoop rather than drive.
+
+→ **Stingray Grind**, **Rap-Rock Snap**.
+
+### Ryan Martinie
+
+**Warwick Thumb into Ampeg and Mesa amplification.** The Thumb's wenge neck and
+bubinga body produce a hard midrange bark between roughly 800 Hz and 1.6 kHz, and
+that bark is the entire reason the bass is audible over down-tuned guitars on
+*L.D. 50*. *Dig* is the showcase - slap, pop and tapped passages all in one part -
+and it needs fast compression with the upper mids left alone.
+
+The clean side matters as much: *World So Cold* and *Death Blooms* have the bass
+carrying melody over the guitars, chorused and sustained, with the low end kept
+dry so the bottom stays solid.
+
+→ **Thumb Bark**, **Melodic Over Drop**.
+
+---
+
+## Latin rock
+
+**Santana, Abraxas era (David Brown).** Precision into a flip-top or Bassman-style
+valve amp. The requirement is specific: a tumbao pattern is felt through the
+*anticipated* notes - the and of two, and beat four - so those need length and
+clear fundamental while everything else stays short. Congas and timbales occupy
+everything above about 2 kHz, so the bass gives that range up entirely. *Oye Como
+Va* and *Black Magic Woman* are the reference.
+
+→ **Tumbao**.
+
+**Chicano rock and Latin funk.** Same instrument, more midrange and more attack,
+because here the bass line is usually the hook rather than the foundation. *Low
+Rider* is the obvious case.
+
+→ **Barrio Groove**.
+
+---
+
+## Classic rock
+
+**John Entwistle.** Effectively invented the bright roundwound bass sound, and
+bi-amped so the highs went to guitar amplification. Almost no compression, fresh
+Rotosound roundwounds, and a deliberate willingness to let the strings hit the
+frets - the clank is the sound, not an artefact. *My Generation* and *The Real Me*.
+
+→ **Typewriter**.
+
+**The seventies session default.** Precision with worn strings into a valve head
+backed off below breakup, mic well off the grille. Warm without being dull: the
+treble is down and the mids are not.
+
+→ **Seventies Session**.
+
+**Harmonised twin-guitar bands (Thin Lizzy and the lineage after it).** Two
+guitars already own the midrange, so the bass has to claim a narrow band - around
+400 Hz - and hold it, with just enough overdrive to be heard as a distinct part.
+
+→ **Twin Guitar Grit**.
+
+---
+
+## Emo and alt
+
+**Pick-played emo and pop-punk.** Precision with a pick into a valve head with
+mild overdrive. The pick attack is doing real work: it is what keeps the bass
+audible when two overdriven guitars are playing the same chord voicings. Jimmy
+Eat World, The Get Up Kids, and Nate Mendel's playing in Sunny Day Real Estate and
+after.
+
+→ **Basement Pick**.
+
+**The clean counterpart.** Arpeggiated verses where the bass plays a countermelody
+- chorused, bright, fingerstyle, notes ringing into each other. American Football
+and Sunny Day Real Estate. The chorus keeps the low end dry so the bottom stays
+solid under the shimmer.
+
+→ **Midwest Clean**.
+
+**The louder end.** More saturation, with the low band split out of the dirt so
+the drops still land. Thursday, Brand New, Taking Back Sunday.
+
+→ **Post-Hardcore Drive**.
+
+---
+
 ## What the presets are *not*
 
 These are original models built from published circuit topologies, measured

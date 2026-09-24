@@ -522,6 +522,344 @@ std::vector<Preset> buildPresets()
           ped (PedalType::GraphicEq,  { 4.0f, 2.0f, -1.0f, -4.0f, -8.0f, -12.0f, -12.0f }) }
     });
 
+    // ---- Signature rigs -----------------------------------------------------
+    // Built from documented setups. The name describes the sound; the reference
+    // line says whose rig it came from and which record to check it against.
+
+    p.push_back ({
+        "Clank & Growl", "Signature",
+        "Bridge-pickup Rickenbacker into a valve 300 W head and an 8x10, Ultra Hi "
+        "engaged, midrange selector parked at 1.6 kHz. Geddy Lee's Moving Pictures "
+        "rig - Tom Sawyer, YYZ, Limelight.",
+        "This is a midrange sound with a low end attached, not the other way round. "
+        "Play hard over the neck pickup with high action and let the attack clank. "
+        "If you reach for the bass control you have lost it.",
+        []{ auto a = ampOf (AmpType::AmpegSvt, 0.72f, 0.78f, 0.42f, 0.78f, 0.72f, 0.62f, 3, 0.40f);
+             a.ultraHi = true; return a; }(),
+        cabOf (CabType::C8x10, MicType::DynamicSmall, 0.18f, 0.18f, 0.10f),
+        rigOf (1.0f, -4.0f, 0.12f),
+        { ped (PedalType::Compressor, { -14.0f, 2.5f, 10.0f, 180.0f, 3.0f, 55.0f, 1.0f }),
+          ped (PedalType::GraphicEq,  { -1.0f, -2.0f, 1.0f, 4.0f, 3.5f, 1.5f, 0.0f }) }
+    });
+
+    p.push_back ({
+        "Eighties Hi-Fi", "Signature",
+        "Active multi-laminate bass into a solid-state head and a horn-loaded 4x10, "
+        "condenser mic. The Wal-and-rack era - Power Windows, Hold Your Fire. Tight, "
+        "scooped, fast, with the attack doing the work the distortion used to.",
+        "Much more controlled than the Rickenbacker sound. Lighter right hand, and "
+        "let the chorus do the width. Turn the chorus off and it is a very usable "
+        "modern rock tone.",
+        ampOf (AmpType::AshdownMag, 0.35f, 0.65f, 0.62f, 0.42f, 0.68f, 0.55f, 2, 0.15f),
+        cabOf (CabType::C4x10, MicType::Condenser, 0.25f, 0.28f, 0.14f, true),
+        rigOf (0.0f, -4.0f, 0.25f),
+        { ped (PedalType::Compressor, { -20.0f, 3.5f, 14.0f, 200.0f, 5.0f, 85.0f, 0.0f }),
+          ped (PedalType::Chorus,     { 0.45f, 28.0f, 14.0f, 1.0f, 140.0f, 25.0f }),
+          ped (PedalType::GraphicEq,  { 1.0f, 2.0f, -3.0f, -1.0f, 2.0f, 2.0f, 1.0f }) }
+    });
+
+    p.push_back ({
+        "Attitude Split", "Signature",
+        "The bi-amped split rig: neck pickup clean into the bass amp, bridge pickup "
+        "into a distorted guitar amp. Billy Sheehan's Attitude setup. The Low Keep "
+        "control on the distortion is doing exactly what his crossover did.",
+        "Low Keep at 250 Hz is the whole trick - everything under it stays clean and "
+        "the grind only lives on top. Push it lower for more dirt, higher to clean "
+        "up the bottom. Three-finger right hand, and the bends are part of it.",
+        ampOf (AmpType::AmpegSvt, 0.50f, 0.70f, 0.60f, 0.60f, 0.62f, 0.50f, 2, 0.45f),
+        cabOf (CabType::C8x10, MicType::DynamicLarge, 0.28f, 0.22f, 0.10f),
+        rigOf (1.0f, -4.0f, 0.25f),
+        { ped (PedalType::Compressor, { -16.0f, 3.0f, 12.0f, 190.0f, 4.0f, 70.0f, 1.0f }),
+          ped (PedalType::Distortion, { 70.0f, 3.0f, -5.0f, 250.0f, 100.0f }) }
+    });
+
+    p.push_back ({
+        "Three-Finger Lead", "Signature",
+        "The same split pushed much harder, for lead-bass playing - Shy Boy, Addicted "
+        "to That Rush. Tapping and fast runs need the upper mids to stay legible "
+        "when the distortion is this heavy.",
+        "The 1.6 kHz band is what makes tapped notes speak. If fast passages turn to "
+        "mush, raise Low Keep rather than backing off the drive.",
+        ampOf (AmpType::AmpegSvt, 0.72f, 0.80f, 0.55f, 0.72f, 0.70f, 0.62f, 3, 0.40f),
+        cabOf (CabType::C4x10, MicType::DynamicSmall, 0.20f, 0.20f, 0.10f, true),
+        rigOf (2.0f, -5.0f, 0.20f),
+        { ped (PedalType::Compressor, { -18.0f, 4.0f, 5.0f, 140.0f, 5.0f, 80.0f, 1.0f }),
+          ped (PedalType::Distortion, { 82.0f, 5.0f, -7.0f, 200.0f, 100.0f }),
+          ped (PedalType::GraphicEq,  { 0.0f, -1.0f, 1.0f, 3.0f, 4.0f, 2.0f, 0.0f }) }
+    });
+
+    p.push_back ({
+        "Folded Horn", "Signature",
+        "Jazz Bass into a solid-state head and an 18-inch folded horn cabinet - John "
+        "Paul Jones's Acoustic 360. Deep, round, and with a low-mid honk that is the "
+        "reason the bass is so audible on Led Zeppelin II.",
+        "The Lemon Song and Ramble On. Fingerstyle over the neck pickup, roundwounds, "
+        "and play melodically - this tone was built to be a second voice, not a floor. "
+        "The 350 Hz midrange setting is the honk; move it and the character goes.",
+        ampOf (AmpType::AshdownMag, 0.45f, 0.62f, 0.70f, 0.58f, 0.42f, 0.25f, 1, 0.20f),
+        cabOf (CabType::C1x15, MicType::DynamicLarge, 0.40f, 0.30f, 0.16f),
+        rigOf (0.0f, -3.0f, 0.18f),
+        { ped (PedalType::Compressor, { -18.0f, 2.5f, 20.0f, 240.0f, 4.0f, 75.0f, 0.0f }),
+          ped (PedalType::GraphicEq,  { 1.0f, 2.0f, 2.5f, 0.0f, -1.0f, -2.0f, -3.0f }) }
+    });
+
+    p.push_back ({
+        "Alembic Hi-Fi", "Signature",
+        "Active through-neck bass with low-pass filter electronics into a bright "
+        "horn-loaded rig. The Presence-era sound - Achilles Last Stand. Extended at "
+        "both ends, fast, and far more modern than anything else on those records.",
+        "Built for sixteenth-note stamina at speed. Very little compression on "
+        "purpose: the dynamics are the performance. Fingers close to the bridge.",
+        ampOf (AmpType::AshdownMag, 0.30f, 0.66f, 0.60f, 0.48f, 0.66f, 0.50f, 3, 0.15f),
+        cabOf (CabType::C4x10, MicType::Condenser, 0.22f, 0.26f, 0.12f, true),
+        rigOf (0.0f, -4.0f, 0.30f),
+        { ped (PedalType::Compressor, { -22.0f, 2.0f, 18.0f, 200.0f, 3.0f, 50.0f, 0.0f }),
+          ped (PedalType::GraphicEq,  { 2.0f, 1.0f, -2.0f, 0.0f, 2.0f, 2.5f, 2.0f }) }
+    });
+
+    p.push_back ({
+        "Bassically", "Signature",
+        "Fuzz into a wah into a pushed valve head and a 4x12 - the unaccompanied bass "
+        "intro to N.I.B. Geezer Butler's 1970 rig was Laney heads and guitar cabs, "
+        "which is why it sounds more like a guitar than a bass amp.",
+        "Assign the Wah's Pedal control to an expression pedal, or switch Wah Mode to "
+        "Auto LFO and set the rate by ear. Low Keep at 110 Hz keeps the fundamental "
+        "under the fuzz so the line still reads as a bass.",
+        ampOf (AmpType::FenderBassman, 0.72f, 0.78f, 0.55f, 0.62f, 0.55f, 0.45f, 2, 0.62f),
+        cabOf (CabType::C4x12, MicType::DynamicSmall, 0.25f, 0.28f, 0.16f),
+        rigOf (1.0f, -5.0f, 0.08f),
+        { ped (PedalType::Fuzz, { 78.0f, 55.0f, -6.0f, 110.0f, 100.0f }),
+          ped (PedalType::Wah,  { 50.0f, 280.0f, 1800.0f, 5.5f, 0.0f, 1.2f, 100.0f }) }
+    });
+
+    p.push_back ({
+        "Birmingham Riff", "Signature",
+        "The same amp without the wah, for the body of the song: bass doubling the "
+        "guitar riff an octave down with enough grit to be heard as a separate part. "
+        "Early Sabbath, where the bass is never just holding roots.",
+        "Fingerstyle, dig in, and follow the guitar but fill the gaps - that is the "
+        "whole Geezer approach. Back the Fuzz Blend off if the riff needs to be "
+        "cleaner under a vocal.",
+        ampOf (AmpType::FenderBassman, 0.65f, 0.76f, 0.58f, 0.66f, 0.50f, 0.40f, 2, 0.60f),
+        cabOf (CabType::C4x12, MicType::Ribbon, 0.28f, 0.30f, 0.15f),
+        rigOf (0.0f, -4.0f, 0.12f),
+        { ped (PedalType::Fuzz,      { 55.0f, 45.0f, -8.0f, 140.0f, 70.0f }),
+          ped (PedalType::GraphicEq, { 0.0f, 1.0f, 2.0f, 2.0f, 1.0f, -1.0f, -3.0f }) }
+    });
+
+    p.push_back ({
+        "Snakepit Direct", "Signature",
+        "The Motown console chain rather than the amp: DI dominant, valve limiting "
+        "doing most of the tone shaping, flatwounds and a foam mute. What's Going On, "
+        "For Once in My Life, Bernadette.",
+        "Heavier limiting than feels right when you solo it - that is the record. One "
+        "finger, over the end of the fingerboard, and let the compressor even out the "
+        "line rather than your right hand.",
+        ampOf (AmpType::AmpegB15, 0.35f, 0.50f, 0.64f, 0.48f, 0.18f, 0.0f, 2, 0.70f),
+        cabOf (CabType::C1x15, MicType::DynamicLarge, 0.48f, 0.18f, 0.06f),
+        rigOf (0.0f, -3.0f, 0.55f),
+        { ped (PedalType::Compressor, { -26.0f, 6.0f, 15.0f, 200.0f, 9.0f, 100.0f, 0.0f }),
+          ped (PedalType::GraphicEq,  { 2.0f, 1.5f, 0.0f, -2.0f, -5.0f, -9.0f, -12.0f }) }
+    });
+
+    p.push_back ({
+        "Hook Melodic", "Signature",
+        "The same flatwound-and-foam voice with the mids opened back up, so busy "
+        "sixteenth-note lines stay legible on a stage instead of in a control room. "
+        "What you actually need to play those parts live.",
+        "Keep the treble down - the definition here comes from 400 to 800 Hz, not "
+        "from top end. If the line disappears in the band, push 800 Hz before you "
+        "touch anything else.",
+        ampOf (AmpType::AmpegB15, 0.45f, 0.58f, 0.58f, 0.62f, 0.26f, 0.0f, 2, 0.68f),
+        cabOf (CabType::C1x15, MicType::DynamicLarge, 0.38f, 0.24f, 0.12f),
+        rigOf (0.0f, -3.0f, 0.30f),
+        { ped (PedalType::Compressor, { -20.0f, 4.0f, 18.0f, 220.0f, 6.0f, 90.0f, 0.0f }),
+          ped (PedalType::GraphicEq,  { 1.0f, 1.0f, 2.5f, 2.0f, -2.0f, -6.0f, -9.0f }) }
+    });
+
+    p.push_back ({
+        "Stingray Grind", "Signature",
+        "Active humbucker bass into a valve head pushed hard, with parallel "
+        "distortion so the low end survives. Tim Commerford's riff tone - Bombtrack, "
+        "Bulls on Parade, the Killing in the Name breakdown.",
+        "Distortion Mix at 70% is the important number: the dry path keeps the "
+        "fundamental while the wet path does the grind. Hard fingerstyle up near the "
+        "neck, and mute everything you are not playing.",
+        ampOf (AmpType::AmpegSvt, 0.68f, 0.80f, 0.58f, 0.70f, 0.66f, 0.58f, 2, 0.40f),
+        cabOf (CabType::C8x10, MicType::DynamicSmall, 0.22f, 0.20f, 0.10f),
+        rigOf (1.0f, -4.0f, 0.15f),
+        { ped (PedalType::Compressor, { -16.0f, 4.0f, 6.0f, 150.0f, 4.0f, 65.0f, 1.0f }),
+          ped (PedalType::Distortion, { 55.0f, 4.0f, -6.0f, 140.0f, 70.0f }),
+          ped (PedalType::GraphicEq,  { 0.0f, 1.0f, 1.0f, 3.0f, 3.0f, 1.0f, 0.0f }) }
+    });
+
+    p.push_back ({
+        "Rap-Rock Snap", "Signature",
+        "The clean side of the same bass: Ultra Lo engaged for the scoop, fast "
+        "compression for ghost notes, and enough top for the attack to read as "
+        "percussion. Take the Power Back.",
+        "The sixteenth-note ghost notes are the part. Set the compressor fast and "
+        "let it even them out, then play the accents harder than feels necessary.",
+        []{ auto a = ampOf (AmpType::AmpegSvt, 0.42f, 0.72f, 0.66f, 0.42f, 0.70f, 0.55f, 2, 0.35f);
+             a.ultraLo = true; return a; }(),
+        cabOf (CabType::C4x10, MicType::DynamicSmall, 0.20f, 0.22f, 0.10f, true),
+        rigOf (0.0f, -4.0f, 0.20f),
+        { ped (PedalType::Compressor, { -20.0f, 5.0f, 3.0f, 110.0f, 6.0f, 90.0f, 1.0f }),
+          ped (PedalType::GraphicEq,  { 3.0f, 3.0f, -3.0f, 0.0f, 3.0f, 3.0f, 1.0f }) }
+    });
+
+    p.push_back ({
+        "Thumb Bark", "Signature",
+        "Wenge-and-bubinga neck-through bass into a valve head and a horn-loaded "
+        "4x10. Ryan Martinie's Warwick Thumb tone - Dig, Determined. The bark lives "
+        "between 800 Hz and 1.6 kHz and it is the whole point of the instrument.",
+        "Slap, pop, tap and chord all need the same thing here: fast compression and "
+        "the upper mids left alone. Play over the end of the fingerboard for the "
+        "woody note and up at the bridge for the snap.",
+        ampOf (AmpType::AmpegSvt, 0.60f, 0.75f, 0.55f, 0.72f, 0.70f, 0.60f, 3, 0.35f),
+        cabOf (CabType::C4x10, MicType::DynamicSmall, 0.18f, 0.20f, 0.10f, true),
+        rigOf (0.0f, -4.0f, 0.20f),
+        { ped (PedalType::Compressor, { -20.0f, 5.0f, 3.0f, 120.0f, 6.0f, 85.0f, 1.0f }),
+          ped (PedalType::Overdrive,  { 32.0f, 60.0f, -5.0f, 55.0f }),
+          ped (PedalType::GraphicEq,  { 1.0f, 0.0f, 1.0f, 4.0f, 4.0f, 3.0f, 1.0f }) }
+    });
+
+    p.push_back ({
+        "Melodic Over Drop", "Signature",
+        "The clean counterpart: chorused, bright and sustained, for melodic bass "
+        "carrying the song over down-tuned guitars. World So Cold, Death Blooms.",
+        "The chorus keeps the low end dry at 130 Hz so the bottom stays solid while "
+        "the harmonics move. A little reverb is deliberate - this part is a lead "
+        "line, not a rhythm part.",
+        ampOf (AmpType::AshdownMag, 0.28f, 0.62f, 0.60f, 0.52f, 0.68f, 0.52f, 3, 0.15f),
+        cabOf (CabType::C4x10, MicType::Condenser, 0.24f, 0.28f, 0.16f, true),
+        rigOf (0.0f, -4.0f, 0.28f),
+        { ped (PedalType::Compressor, { -22.0f, 3.5f, 12.0f, 200.0f, 5.0f, 85.0f, 0.0f }),
+          ped (PedalType::Chorus,     { 0.35f, 45.0f, 18.0f, 2.0f, 130.0f, 35.0f }),
+          ped (PedalType::Reverb,     { 40.0f, 60.0f, 20.0f, 260.0f, 14.0f }, PedalPlacement::PostCab) }
+    });
+
+    // ---- Latin rock ---------------------------------------------------------
+    p.push_back ({
+        "Tumbao", "Latin Rock",
+        "Precision with a flip-top valve head into a 1x15, mic close and off centre. "
+        "The Abraxas-era Santana rhythm section sound: the bass has to state the "
+        "fundamental clearly enough that the tumbao is felt, not just heard.",
+        "Oye Como Va, Black Magic Woman. The anticipated notes - the and of two, and "
+        "beat four - carry the groove, so give them the length and let the rest be "
+        "short. Congas and timbales own everything above 2 kHz; stay out of it.",
+        ampOf (AmpType::AmpegB15, 0.40f, 0.58f, 0.62f, 0.55f, 0.32f, 0.0f, 2, 0.65f),
+        cabOf (CabType::C1x15, MicType::DynamicLarge, 0.40f, 0.25f, 0.14f),
+        rigOf (0.0f, -3.0f, 0.18f),
+        { ped (PedalType::Compressor, { -18.0f, 3.5f, 16.0f, 200.0f, 5.0f, 85.0f, 0.0f }),
+          ped (PedalType::GraphicEq,  { 1.0f, 2.0f, 2.0f, 0.0f, -2.0f, -5.0f, -7.0f }) }
+    });
+
+    p.push_back ({
+        "Barrio Groove", "Latin Rock",
+        "Punchier and brighter, with the amp close enough to breakup that hard notes "
+        "push it over. Latin funk and Chicano rock - Low Rider, El Chicano, the "
+        "heavier end of the Santana catalogue.",
+        "More mids and more attack than Tumbao, because here the bass is a hook "
+        "rather than a foundation. Fingers near the bridge, notes short and even.",
+        ampOf (AmpType::FenderBassman, 0.55f, 0.68f, 0.58f, 0.58f, 0.48f, 0.35f, 2, 0.55f),
+        cabOf (CabType::C2x12, MicType::DynamicLarge, 0.32f, 0.28f, 0.16f),
+        rigOf (0.0f, -4.0f, 0.15f),
+        { ped (PedalType::Compressor, { -16.0f, 4.0f, 8.0f, 160.0f, 5.0f, 90.0f, 1.0f }),
+          ped (PedalType::GraphicEq,  { 1.0f, 1.0f, 2.5f, 2.0f, 0.0f, -2.0f, -4.0f }) }
+    });
+
+    // ---- Classic rock -------------------------------------------------------
+    p.push_back ({
+        "Typewriter", "Classic Rock",
+        "Fresh roundwounds, almost no compression and a deliberately bright rig - the "
+        "sound that made bass a lead instrument in the late sixties. John Entwistle's "
+        "bi-amped setup, where the highs went to guitar amps.",
+        "My Generation, The Real Me. The clank is the sound: play hard with the "
+        "fingers, let the strings hit the frets, and do not compress it away. If it "
+        "feels too bright soloed it is probably right in the band.",
+        []{ auto a = ampOf (AmpType::AmpegSvt, 0.40f, 0.72f, 0.52f, 0.62f, 0.80f, 0.70f, 3, 0.30f);
+             a.ultraHi = true; return a; }(),
+        cabOf (CabType::C4x10, MicType::Condenser, 0.15f, 0.18f, 0.10f, true),
+        rigOf (0.0f, -4.0f, 0.25f),
+        { ped (PedalType::Compressor, { -12.0f, 2.0f, 25.0f, 220.0f, 2.0f, 35.0f, 0.0f }),
+          ped (PedalType::GraphicEq,  { 0.0f, -1.0f, 0.0f, 2.0f, 4.0f, 4.0f, 3.0f }) }
+    });
+
+    p.push_back ({
+        "Seventies Session", "Classic Rock",
+        "Precision with worn strings into a valve head backed off to where it stays "
+        "clean but not clinical, ribbon mic well off the grille. The default studio "
+        "bass sound of the decade.",
+        "Warm without being dull: the treble is down but the mids are not. This is a "
+        "supporting tone - root-and-fifth work, eighth notes, staying out of the way "
+        "of everything else on the track.",
+        ampOf (AmpType::AmpegSvt, 0.45f, 0.62f, 0.62f, 0.55f, 0.35f, 0.20f, 1, 0.65f),
+        cabOf (CabType::C8x10, MicType::Ribbon, 0.40f, 0.42f, 0.20f),
+        rigOf (0.0f, -3.0f, 0.15f),
+        { ped (PedalType::Compressor, { -18.0f, 3.0f, 20.0f, 240.0f, 5.0f, 85.0f, 0.0f }) }
+    });
+
+    p.push_back ({
+        "Twin Guitar Grit", "Classic Rock",
+        "Midrange-forward and lightly overdriven, for sitting underneath harmonised "
+        "guitars without disappearing. The Thin Lizzy problem: two guitars already own "
+        "the mids, so the bass has to claim a narrow band and hold it.",
+        "Pick or fingers both work. The overdrive is parallel at 55% - enough edge to "
+        "be heard, not enough to blur the note. Push 400 Hz, not 50 Hz, if you get "
+        "buried.",
+        ampOf (AmpType::AmpegSvt, 0.60f, 0.74f, 0.52f, 0.68f, 0.58f, 0.45f, 2, 0.50f),
+        cabOf (CabType::C4x12, MicType::DynamicLarge, 0.28f, 0.26f, 0.14f),
+        rigOf (0.0f, -4.0f, 0.12f),
+        { ped (PedalType::Compressor, { -16.0f, 3.0f, 12.0f, 180.0f, 4.0f, 70.0f, 1.0f }),
+          ped (PedalType::Overdrive,  { 38.0f, 55.0f, -4.0f, 55.0f }) }
+    });
+
+    // ---- Emo / alt ----------------------------------------------------------
+    p.push_back ({
+        "Basement Pick", "Emo / Alt",
+        "Pick-played Precision into a valve head with a little overdrive, small "
+        "dynamic mic close to the cone. The midwest emo and pop-punk default - "
+        "Jimmy Eat World, The Get Up Kids, early Foo Fighters.",
+        "The pick click is a feature, not a problem: it is what keeps the bass "
+        "audible when two overdriven guitars are playing the same chords. Pick "
+        "halfway between the neck and bridge, downstrokes, and keep it even.",
+        ampOf (AmpType::AmpegSvt, 0.62f, 0.72f, 0.52f, 0.66f, 0.68f, 0.55f, 2, 0.45f),
+        cabOf (CabType::C4x10, MicType::DynamicSmall, 0.20f, 0.20f, 0.10f, true),
+        rigOf (1.0f, -4.0f, 0.15f),
+        { ped (PedalType::Compressor, { -16.0f, 3.5f, 8.0f, 160.0f, 4.0f, 70.0f, 1.0f }),
+          ped (PedalType::Overdrive,  { 35.0f, 58.0f, -4.0f, 60.0f }) }
+    });
+
+    p.push_back ({
+        "Midwest Clean", "Emo / Alt",
+        "The other half of the same band: clean, chorused and bright, for the "
+        "arpeggiated verses where the bass plays a countermelody rather than roots. "
+        "American Football, Sunny Day Real Estate.",
+        "Fingerstyle here, not a pick. The chorus keeps the bottom dry so the low "
+        "notes stay solid under the shimmer. Let notes ring into each other.",
+        ampOf (AmpType::AshdownMag, 0.28f, 0.60f, 0.58f, 0.52f, 0.66f, 0.45f, 2, 0.20f),
+        cabOf (CabType::C2x10, MicType::Condenser, 0.26f, 0.30f, 0.18f),
+        rigOf (0.0f, -4.0f, 0.30f),
+        { ped (PedalType::Compressor, { -20.0f, 3.0f, 15.0f, 200.0f, 5.0f, 80.0f, 0.0f }),
+          ped (PedalType::Chorus,     { 0.55f, 40.0f, 16.0f, 1.0f, 120.0f, 32.0f }),
+          ped (PedalType::Reverb,     { 35.0f, 65.0f, 18.0f, 280.0f, 12.0f }, PedalPlacement::PostCab) }
+    });
+
+    p.push_back ({
+        "Post-Hardcore Drive", "Emo / Alt",
+        "Heavier and more saturated, with the low end split out of the dirt so the "
+        "drop still lands. The louder end of the genre - Thursday, Brand New, Taking "
+        "Back Sunday.",
+        "Pick, hard, near the bridge. Low Keep at 120 Hz keeps the bottom clean under "
+        "a lot of distortion; drop it to 80 Hz if you want the whole note to break up.",
+        ampOf (AmpType::AmpegSvt, 0.72f, 0.78f, 0.55f, 0.70f, 0.66f, 0.58f, 2, 0.42f),
+        cabOf (CabType::C4x12, MicType::DynamicSmall, 0.22f, 0.22f, 0.12f),
+        rigOf (1.0f, -5.0f, 0.15f),
+        { ped (PedalType::Compressor, { -18.0f, 4.0f, 6.0f, 150.0f, 5.0f, 75.0f, 1.0f }),
+          ped (PedalType::Distortion, { 62.0f, 3.0f, -6.0f, 120.0f, 85.0f }) }
+    });
+
     return p;
 }
 
