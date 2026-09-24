@@ -1,0 +1,102 @@
+name: BassAmp Studio
+
+on:
+  push:
+    paths:
+      - 'bass-amp-emulator/**'
+      - '.github/workflows/bass-amp-emulator.yml'
+  pull_request:
+    paths:
+      - 'bass-amp-emulator/**'
+      - '.github/workflows/bass-amp-emulator.yml'
+  workflow_dispatch:
+
+defaults:
+  run:
+    working-directory: bass-amp-emulator
+
+jobs:
+  dsp-tests:
+    name: DSP tests (Linux)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # The DSP core has no framework dependency, so the numerical tests run
+      # without installing an audio stack at all.
+      - name: Configure
+        run: cmake -B build -DBASSAMP_BUILD_PLUGIN=OFF -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build
+        run: cmake --build build --parallel
+
+      - name: Test
+        run: ctest --test-dir build --output-on-failure
+
+  sanitizers:
+    name: Address + UB sanitizers (Linux)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Audio DSP is full of raw buffers and circular indexing, which is exactly
+      # where an off-by-one hides until it corrupts something on stage.
+      - name: Configure
+        run: >
+          cmake -B build-san -DBASSAMP_BUILD_PLUGIN=OFF -DCMAKE_BUILD_TYPE=Debug
+          -DCMAKE_CXX_FLAGS="-fsanitize=address,undefined -fno-omit-frame-pointer -g -O1"
+          -DCMAKE_EXE_LINKER_FLAGS="-fsanitize=address,undefined"
+
+      - name: Build
+        run: cmake --build build-san --parallel
+
+      - name: Test
+        env:
+          UBSAN_OPTIONS: print_stacktrace=1:halt_on_error=1
+          ASAN_OPTIONS: detect_leaks=1
+        run: ctest --test-dir build-san --output-on-failure
+
+  windows:
+    name: Windows build (standalone + VST3)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Cache JUCE
+        uses: actions/cache@v4
+        with:
+          path: bass-amp-emulator/build/_deps
+          key: juce-${{ runner.os }}-8.0.15
+
+      # The ASIO SDK 2.3.4 is bundled under third_party/asiosdk under its GPLv3
+      # licence (dual-licensed since SDK 2.3.4). CMakeLists.txt auto-detects it,
+      # so no explicit path flag is needed here.
+      # No explicit generator: the windows-latest image moves to a new Visual
+      # Studio version periodically, and pinning "Visual Studio 17 2022" breaks
+      # the day it does. CMake picks whichever VS the runner has installed.
+      - name: Configure
+        run: cmake -B build
+
+      - name: Build
+        run: cmake --build build --config Release --parallel
+
+      - name: Test
+        run: ctest --test-dir build -C Release --output-on-failure
+
+      - name: Stage artifacts
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path dist | Out-Null
+          Copy-Item -Recurse -Force `
+            "build/BassAmpStudio_artefacts/Release/Standalone/BassAmp Studio.exe" dist/
+          Copy-Item -Recurse -Force `
+            "build/BassAmpStudio_artefacts/Release/VST3/BassAmp Studio.vst3" dist/
+          Copy-Item -Force README.md dist/
+          Copy-Item -Recurse -Force docs dist/docs
+
+      - name: Upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: BassAmpStudio-windows-x64
+          path: bass-amp-emulator/dist/
+          if-no-files-found: error
